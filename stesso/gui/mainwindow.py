@@ -45,6 +45,7 @@ class MainWindow(QMainWindow):
         # Connect push buttons to slot functions
         self.ui.pbShowDialogOpen.clicked.connect(self.show_dialog_open)
         # self.ui.pbShowExportDialog.clicked.connect(self.show_dialog_export)
+        self.ui.pbBalance.clicked.connect(self.balance_volumes)
 
 
     #     # Disable buttons that should only be used after loading a network
@@ -108,5 +109,7 @@ class MainWindow(QMainWindow):
 
     #         self.ui.pbShowExportDialog.setEnabled(True)
     #         self.ui.pbShowODEstimation.setEnabled(True)
-
+    
+    def balance_volumes(self):
+        self.model.balance_volumes()
 

@@ -6,6 +6,7 @@ from dataclasses import dataclass
 
 
 from network import net_read, net_write
+from balancer import balancer
 
 
 # @dataclass
@@ -75,6 +76,12 @@ class Model():
             net_read.import_turns(turns_file, self.net)
 
         return True
+
+    def balance_volumes(self):
+        if self.net is None:
+            return
+
+        balancer.balance_volumes(self.net)
 
 #     def estimate_od(self, weight_total_geh=None, weight_odsse=None, weight_route_ratio=None):
 #         """Estimate an OD matrix that attempts to meet various network volume targets.
