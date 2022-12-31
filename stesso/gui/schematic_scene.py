@@ -1,4 +1,4 @@
-from PySide2.QtWidgets import QGraphicsScene
+from PySide2.QtWidgets import QGraphicsScene, QGraphicsItem
 from .schematic_items import LinkItem, NodeItem
 
 from typing import TYPE_CHECKING, Protocol, Callable
@@ -119,9 +119,12 @@ class SchematicScene(QGraphicsScene):
             outbound_links=outbound_links,
             get_turn_text_fn=self.get_turn_text_fn)
 
-        #self.approach_label.setFlag(QGraphicsItem.ItemIsMovable)
-        ap_label.setPos(approach_link.pts[1][0], approach_link.pts[1][1])
+        ap_label.setFlag(QGraphicsItem.ItemIsMovable)
+        # ap_label.setPos(approach_link.pts[1][0], approach_link.pts[1][1])
+        ap_label.setPos(ap_label.get_offset())
+
         self.addItem(ap_label)
+        self.addEllipse(ap_label.pos().x(), ap_label.pos().y(), 5, 5)
     
     # def load_routes(self, routes: List[RouteInfo]) -> None:
     #     """Transfers data about the routes and od from the Model to the SchematicScene.

@@ -92,7 +92,7 @@ class ApproachLabel(QGraphicsItem):
                 'angle': outbound_line.angle()
                 }
 
-        # Sort turns by angle
+        # Sort turns by angle relative to self
         self.turns = dict(sorted(self.turns.items(), key=lambda item: item[1]['angle_rel']))
 
         # Add labels and turn arrows for each turn
@@ -141,18 +141,20 @@ class ApproachLabel(QGraphicsItem):
 
         self.height = SCALE_VALUE * self.rows
 
-        self.setTransformOriginPoint(QPointF(0, self.rows * SCALE_VALUE))
         self.setRotation(-self.angle)
-        #print(f"ApproachLabel self.angle = {self.angle}")
+
+    def get_offset(self) -> QPointF:
+        offset: QLineF = self.approach_line.unitVector()
+        offset.setLength(50)
+        return offset.p2()
     
     def boundingRect(self):
         return QRectF(-10, -10, 120, self.height + 20)
 
     def paint(self, painter, option, widget) -> None:
-        pass
-        # painter.drawRect(0, 0, 100, self.height)
-        # Draw Bounding Rect
-        # painter.drawRect(-10, -10, 50, self.height + 20)
+        # Draw Bounding Rect for debugging
+        painter.drawRect(self.boundingRect())
+        painter.drawEllipse(0,0,3,3)
 
     def mousePressEvent(self, event) -> None:
         return super().mousePressEvent(event)
