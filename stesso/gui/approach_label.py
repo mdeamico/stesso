@@ -5,20 +5,24 @@ from PySide2.QtCore import QRectF, QPointF, QLineF
 from .approach_arrow import TMArrow
 from .approach_text import LabelText
 
-from dataclasses import dataclass
+from typing import Protocol
 
 SCALE_VALUE = 22
 
-@dataclass
-class LinkProperties():
-    key: tuple[int, int]
-    shape_points: list[tuple[float, float]]
+
+class LinkItemData(Protocol):
+    @property
+    def key(self) -> tuple[int, int]:
+        ...
+    @property
+    def pts(self) -> list[tuple[float, float]]:
+        ...
 
 
 class ApproachLabel(QGraphicsItem):
     def __init__(self, 
-            self_link: LinkProperties,
-            outbound_links: list[LinkProperties],
+            self_link: LinkItemData,
+            outbound_links: list[LinkItemData],
             get_turn_data_fn: callable
         ) -> None:
 
@@ -61,8 +65,8 @@ class ApproachLabel(QGraphicsItem):
         #          A ..........0
     
         self.approach_line = \
-               QLineF(self.link.shape_points[1][0], self.link.shape_points[1][1],
-                      self.link.shape_points[0][0], self.link.shape_points[0][1])
+               QLineF(self.link.pts[1][0], self.link.pts[1][1],
+                      self.link.pts[0][0], self.link.pts[0][1])
         
         self.angle = self.approach_line.angle()
         self.flip = (self.angle > 90) and (self.angle <= 270)
@@ -77,8 +81,8 @@ class ApproachLabel(QGraphicsItem):
         for i in range(0, self.rows):
             outbound_link = self.outbound_links[i]
             outbound_line = \
-               QLineF(outbound_link.shape_points[0][0], outbound_link.shape_points[0][1],
-                      outbound_link.shape_points[1][0], outbound_link.shape_points[1][1])
+               QLineF(outbound_link.pts[0][0], outbound_link.pts[0][1],
+                      outbound_link.pts[1][0], outbound_link.pts[1][1])
 
             angle = self.approach_line.angleTo(outbound_line)
 

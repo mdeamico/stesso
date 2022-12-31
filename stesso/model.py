@@ -3,11 +3,14 @@
 
 import os
 from dataclasses import dataclass
-
+from typing import TYPE_CHECKING
 
 from network import net_read, net_write
 from balancer import balancer
 
+if TYPE_CHECKING:
+    from .network.netnode import NetNode
+    from .network.netlink import NetLinkData
 
 # @dataclass
 # class RouteInfo:
@@ -18,6 +21,23 @@ from balancer import balancer
 #     d_name: str
 #     name: str
 #     nodes: List
+
+@dataclass
+class TurnLabelData:
+    """Data required for turning movement labels."""
+    key: tuple[int, int, int]
+
+@dataclass
+class ApproachLabelData:
+    """Group of TurnLabelData for a node approach."""
+    link_key: tuple[int, int]
+    turns: list[TurnLabelData]
+
+@dataclass
+class NodeApproachLabelData:
+    """Group of ApproachLabelData for a node."""
+    key: int
+    approaches: list[ApproachLabelData]
 
 
 class Model():
@@ -83,42 +103,52 @@ class Model():
 
         balancer.balance_volumes(self.net)
 
-    def get_node_xy(self):
-        """Return xy coordinates for each node."""
+    def get_nodes(self) -> list['NetNode']:
+        """Return a list of nodes in the network."""
         if not self.net:
             return
         
-        return {i: (node.x, node.y, node.name) for i, node in self.net.nodes(True)}
+        return list(self.net.nodes())
 
-    def get_link_end_ids(self):
-        """Return node ids for the start and end of each link."""
+    def get_links(self) -> list['NetLinkData']:
+        """Return a list of data for each link."""
         if not self.net:
             return
         
-        return [(i, j, self.net.link(i, j).shape_points) for (i, j), _ in self.net.links(True)]
+        return list(self.net.links())
 
     def get_nodes_to_label(self):
         # TODO: WIP: returning one test node for now.
         
-        nodes_to_label = []
-        j, node = self.net.get_node_by_name('102')
+        nodes_to_label: list[NodeApproachLabelData] = []
+
+        j, _ = self.net.get_node_by_name('102')
         inbound_links = self.net.get_approach_links(j)
         outbound_links = self.net.get_outbound_links(j)
 
         # TODO: handle case when inbound_links is empty
-        label_list = []
-        for link in inbound_links:            
-            i = link[0]
-            turns = []
-            for (_, k) in outbound_links:
+        approach_labels: list[ApproachLabelData] = []
+
+        for link_in in inbound_links:            
+            i = link_in.key[0]
+            turns: list[TurnLabelData] = []
+            for link_out in outbound_links:
+                k = link_out.key[1]
                 if i == k: continue
                 test_turn = self.net.turn(i, j, k)
                 if test_turn is None: continue
-                turns.append(test_turn)
+                turns.append(TurnLabelData(key=test_turn.key))
 
-            label_list.append((link, turns))
+            approach_labels.append(
+                ApproachLabelData(
+                    link_key=link_in.key,
+                    turns=turns))
 
-        nodes_to_label.append((j, label_list))
+        nodes_to_label.append(
+            NodeApproachLabelData(
+                key=j,
+                approaches=approach_labels))
+                
         return nodes_to_label
 
 

@@ -82,8 +82,8 @@ class MainWindow(QMainWindow):
             print("Loading not successful")
             return
         
-        self.schematic_scene.load_network(self.model.get_node_xy(), 
-                                          self.model.get_link_end_ids(),
+        self.schematic_scene.load_network(self.model.get_nodes(), 
+                                          self.model.get_links(),
                                           self.model.get_nodes_to_label())
 
         # Set scene rectangle to something larger than the network.

@@ -1,23 +1,62 @@
 from PySide2.QtWidgets import QGraphicsScene
 from .schematic_items import LinkItem, NodeItem
 
-from typing import TYPE_CHECKING
-from typing import List
-# from model import RouteInfo
+from typing import TYPE_CHECKING, Protocol
 
-from .approach_label import ApproachLabel, LinkProperties
+from .approach_label import ApproachLabel
 
 if TYPE_CHECKING:
     import PySide2.QtWidgets    
 
+class NodeData(Protocol):
+    @property
+    def name(self) -> str:
+        ...
+    @property
+    def x(self) -> float:
+        ...
+    @property
+    def y(self) -> float:
+        ...
 
+class LinkData(Protocol):
+    @property
+    def key(self) -> tuple[int, int]:
+        ...
+    @property
+    def shape_points(self) -> list[tuple[float, float]]:
+        ...
+
+class TurnLabelData(Protocol):
+    """Data required for turning movement labels."""
+    @property
+    def key(self) -> tuple[int, int, int]:
+        ...
+
+class ApproachLabelData(Protocol):
+    """Group of TurnLabelData for a node approach."""
+    @property
+    def link_key(self) -> tuple[int, int]:
+        ...
+    @property
+    def turns(self) -> list[TurnLabelData]:
+        ...
+
+class NodeApproachLabelData(Protocol):
+    """Group of ApproachLabelData for a node."""
+    @property
+    def key(self) -> int:
+        ...
+    @property
+    def approaches(self) -> list['ApproachLabelData']:
+        ...
 
 class SchematicScene(QGraphicsScene):
     """QGraphicsScene for displaying the network.
 
     Attributes
     ----------
-    links : Dict
+    links : dict[tuple[int, int], LinkItem]
         Stores a LinkItem for each link in the network.
         Keyed by: (start node id, end node id)
     routes: Dict
@@ -27,50 +66,45 @@ class SchematicScene(QGraphicsScene):
     
     def __init__(self):
         super().__init__()
-        self.links = {}
+        self.links: dict[tuple[int, int], LinkItem] = {}
         self.routes = {}
 
-    def load_network(self, nodes, links, node_label_info) -> None:
+    def load_network(
+        self, 
+        nodes: list[NodeData], 
+        links: list[LinkData], 
+        node_label_info: list[NodeApproachLabelData]) -> None:
         """Transfer network node and link data from the Model to the SchematicScene. 
 
         Parameters
         ----------
-        nodes : Dict
-            {i: (x, y, name)} Dict of coordinates for each node.
-        links : List
-            [(i, j, shape_points), ...] List of start/end node numbers for each link.
+        nodes : list[NodeData]
+            List of basic data for each node: x, y, name.
+        links : List[LinkData]
+            List of basic data for each link: key, list of points
         """
-        for _, (x, y, name) in nodes.items():
-            self.addItem(NodeItem(x, y, name))
+        for node in nodes:
+            self.addItem(NodeItem(node.x, node.y, node.name))
         
-        for (i, j, pts) in links:
-            self.links[(i, j)] = LinkItem(pts)
+        for link in links:
+            new_link_item = LinkItem(key=link.key, pts=link.shape_points)
+            self.links[link.key] = new_link_item
+            self.addItem(new_link_item)
 
-            self.addItem(self.links[(i, j)])
-
-        for node_key, approaches in node_label_info:
-            # print(node)
-            # (2, [((1, 2), [TurnData(key=(1, 2, 3), name='1_2_3', seed_volume=0, target_volume=0, assigned_volume=0, geh=0), 
-            #                TurnData(key=(1, 2, 4), name='1_2_4', seed_volume=0, target_volume=0, assigned_volume=0, geh=0), 
-            #                TurnData(key=(1, 2, 0), name='1_2_0', seed_volume=0, target_volume=0, assigned_volume=0, geh=0)])])
-            for approach in approaches:
-                self.add_approach_label(node_key, approach)
+        for node in node_label_info:            
+            for approach in node.approaches:
+                self.add_approach_label(node.key, approach)
 
 
-    def add_approach_label(self, node_key, approach) -> None:
+    def add_approach_label(self, node_key: int, approach: 'ApproachLabelData') -> None:
+ 
+        approach_link = self.links[approach.link_key]
+        approach_turns = approach.turns
+        outbound_links: list[LinkItem] = []
 
-        approach_link = LinkProperties(
-            key=approach[0],
-            shape_points=self.links[approach[0]].pts)
-        
-        approach_turns = approach[1]
-        
-        outbound_links = []
         for turn in approach_turns:
-            outbound_links.append(
-                LinkProperties(
-                    key=(node_key, turn.key[2]),
-                    shape_points=self.links[(node_key, turn.key[2])].pts))
+            link_out_key = (node_key, turn.key[2])
+            outbound_links.append(self.links[link_out_key])
     
         ap_label = ApproachLabel(
             self_link=approach_link,
@@ -78,7 +112,7 @@ class SchematicScene(QGraphicsScene):
             get_turn_data_fn="hello")
 
         #self.approach_label.setFlag(QGraphicsItem.ItemIsMovable)
-        ap_label.setPos(approach_link.shape_points[1][0], approach_link.shape_points[1][1])
+        ap_label.setPos(approach_link.pts[1][0], approach_link.pts[1][1])
         self.addItem(ap_label)
     
     # def load_routes(self, routes: List[RouteInfo]) -> None:
