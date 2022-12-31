@@ -5,7 +5,7 @@ from PySide2.QtCore import QRectF, QPointF, QLineF
 from .approach_arrow import TMArrow
 from .approach_text import LabelText
 
-from typing import Protocol
+from typing import Protocol, Callable
 
 SCALE_VALUE = 22
 
@@ -23,7 +23,7 @@ class ApproachLabel(QGraphicsItem):
     def __init__(self, 
             self_link: LinkItemData,
             outbound_links: list[LinkItemData],
-            get_turn_data_fn: callable
+            get_turn_text_fn: Callable[[tuple[int, int, int], str], str]
         ) -> None:
 
         super().__init__()
@@ -37,7 +37,7 @@ class ApproachLabel(QGraphicsItem):
         
         # Column 1
         self.text_columns.append({
-            'info': 'volume', 
+            'info': 'target_volume', 
             'max_char': 0, 
             'text_prefix': "",  # character to add to start of string, ex "("
             'text_postfix': "", # character to add to end of string, ex ")"
@@ -46,14 +46,14 @@ class ApproachLabel(QGraphicsItem):
 
         # Column 2
         self.text_columns.append({
-            'info': 'GEH', 
+            'info': 'geh', 
             'max_char': 0, 
             'text_prefix': "<",
             'text_postfix': ">",
             'rows': []              
         })
 
-        self.get_turn_data = get_turn_data_fn
+        self.get_turn_text = get_turn_text_fn
     
         # Calculate angle based on self.link
         # Measure angle of line starting from the central intersection node.
@@ -96,7 +96,7 @@ class ApproachLabel(QGraphicsItem):
         self.turns = dict(sorted(self.turns.items(), key=lambda item: item[1]['angle_rel']))
 
         # Add labels and turn arrows for each turn
-        for row, (k, t) in enumerate(self.turns.items()):
+        for row, (turn_key, t) in enumerate(self.turns.items()):
             t['row'] = row
 
             new_tm_arrow = TMArrow(self, self.angle, t['angle'], t['angle_rel'])
@@ -105,17 +105,14 @@ class ApproachLabel(QGraphicsItem):
             for col in self.text_columns:
                 info = col['info']
 
-                label_message = self.get_turn_data
+                turn_text = self.get_turn_text(turn_key, info)
 
-                # label_message = \
-                #     col['text_prefix'] + \
-                #     str(self.get_turn_data(k)[info]) + \
-                #     col['text_postfix']
+                label_text = f"{col['text_prefix']}{turn_text}{col['text_postfix']}"
 
-                new_text = LabelText(self, label_message, self.flip)
+                new_label = LabelText(self, label_text, self.flip)
                 
-                col['max_char'] = max(len(label_message), col['max_char'])
-                col['rows'].append(new_text)
+                col['max_char'] = max(len(label_text), col['max_char'])
+                col['rows'].append(new_label)
 
         # Set text position
         

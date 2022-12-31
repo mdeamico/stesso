@@ -84,7 +84,8 @@ class MainWindow(QMainWindow):
         
         self.schematic_scene.load_network(self.model.get_nodes(), 
                                           self.model.get_links(),
-                                          self.model.get_nodes_to_label())
+                                          self.model.get_nodes_to_label(),
+                                          self.model.get_turn_text)
 
         # Set scene rectangle to something larger than the network.
         # This helps with panning & zooming near the edges of the network.

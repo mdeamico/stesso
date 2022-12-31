@@ -1,7 +1,7 @@
 from PySide2.QtWidgets import QGraphicsScene
 from .schematic_items import LinkItem, NodeItem
 
-from typing import TYPE_CHECKING, Protocol
+from typing import TYPE_CHECKING, Protocol, Callable
 
 from .approach_label import ApproachLabel
 
@@ -67,13 +67,15 @@ class SchematicScene(QGraphicsScene):
     def __init__(self):
         super().__init__()
         self.links: dict[tuple[int, int], LinkItem] = {}
-        self.routes = {}
+        # self.routes = {}
+        self.get_turn_text_fn: Callable[[tuple[int, int, int], str], str] = None
 
     def load_network(
         self, 
         nodes: list[NodeData], 
         links: list[LinkData], 
-        node_label_info: list[NodeApproachLabelData]) -> None:
+        node_label_info: list[NodeApproachLabelData],
+        get_turn_text_fn: Callable[[tuple[int, int, int], str], str]) -> None:
         """Transfer network node and link data from the Model to the SchematicScene. 
 
         Parameters
@@ -82,6 +84,11 @@ class SchematicScene(QGraphicsScene):
             List of basic data for each node: x, y, name.
         links : List[LinkData]
             List of basic data for each link: key, list of points
+        node_label_info : list[NodeApproachLabelData]
+            List of data needed to make turning movement labels at each node.
+        get_turn_text_fn : Callable[[tuple[int, int, int], str], str])
+            Callback function to get the text to display for each turning movement, 
+            such as volume, GEH, etc.
         """
         for node in nodes:
             self.addItem(NodeItem(node.x, node.y, node.name))
@@ -91,10 +98,11 @@ class SchematicScene(QGraphicsScene):
             self.links[link.key] = new_link_item
             self.addItem(new_link_item)
 
+        self.get_turn_text_fn = get_turn_text_fn
+
         for node in node_label_info:            
             for approach in node.approaches:
                 self.add_approach_label(node.key, approach)
-
 
     def add_approach_label(self, node_key: int, approach: 'ApproachLabelData') -> None:
  
@@ -109,7 +117,7 @@ class SchematicScene(QGraphicsScene):
         ap_label = ApproachLabel(
             self_link=approach_link,
             outbound_links=outbound_links,
-            get_turn_data_fn="hello")
+            get_turn_text_fn=self.get_turn_text_fn)
 
         #self.approach_label.setFlag(QGraphicsItem.ItemIsMovable)
         ap_label.setPos(approach_link.pts[1][0], approach_link.pts[1][1])

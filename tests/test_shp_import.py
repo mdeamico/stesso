@@ -35,6 +35,7 @@ class MainTest(unittest.TestCase):
         QTest.mouseClick(self.window.ui.pbShowDialogOpen, Qt.LeftButton)
         self.window.dialog_open.ui.leLinks.setText(os.path.join(net_folder, "links.shp"))
         self.window.dialog_open.ui.leNodes.setText(os.path.join(net_folder, "points.shp"))
+        self.window.dialog_open.ui.leTurns.setText(os.path.join(net_folder, "turn targets.csv"))
         QTest.mouseClick(self.window.dialog_open.ui.buttonBox.button(QDialogButtonBox.Ok), Qt.LeftButton)
         event_loop(20000)
         self.assertEqual(1, 1)

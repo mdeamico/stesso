@@ -117,6 +117,20 @@ class Model():
         
         return list(self.net.links())
 
+    def get_turn_text(self, turn_key: tuple[int, int, int], data_name: str) -> str:
+        """Return data to display in turning movement labels."""
+        turn = self.net.turn(*turn_key)
+        
+        match data_name:
+            case "geh":
+                text = str(turn.geh)
+            case "target_volume": 
+                text = f'{turn.target_volume:.0f}'
+            case _:
+                text = "NA"
+        
+        return text
+
     def get_nodes_to_label(self):
         # TODO: WIP: returning one test node for now.
         
