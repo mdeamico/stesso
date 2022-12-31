@@ -5,6 +5,8 @@ from typing import TYPE_CHECKING
 from typing import List
 # from model import RouteInfo
 
+from .approach_label import ApproachLabel, LinkProperties
+
 if TYPE_CHECKING:
     import PySide2.QtWidgets    
 
@@ -28,7 +30,7 @@ class SchematicScene(QGraphicsScene):
         self.links = {}
         self.routes = {}
 
-    def load_network(self, nodes, links) -> None:
+    def load_network(self, nodes, links, node_label_info) -> None:
         """Transfer network node and link data from the Model to the SchematicScene. 
 
         Parameters
@@ -46,6 +48,39 @@ class SchematicScene(QGraphicsScene):
 
             self.addItem(self.links[(i, j)])
 
+        for node_key, approaches in node_label_info:
+            # print(node)
+            # (2, [((1, 2), [TurnData(key=(1, 2, 3), name='1_2_3', seed_volume=0, target_volume=0, assigned_volume=0, geh=0), 
+            #                TurnData(key=(1, 2, 4), name='1_2_4', seed_volume=0, target_volume=0, assigned_volume=0, geh=0), 
+            #                TurnData(key=(1, 2, 0), name='1_2_0', seed_volume=0, target_volume=0, assigned_volume=0, geh=0)])])
+            for approach in approaches:
+                self.add_approach_label(node_key, approach)
+
+
+    def add_approach_label(self, node_key, approach) -> None:
+
+        approach_link = LinkProperties(
+            key=approach[0],
+            shape_points=self.links[approach[0]].pts)
+        
+        approach_turns = approach[1]
+        
+        outbound_links = []
+        for turn in approach_turns:
+            outbound_links.append(
+                LinkProperties(
+                    key=(node_key, turn.key[2]),
+                    shape_points=self.links[(node_key, turn.key[2])].pts))
+    
+        ap_label = ApproachLabel(
+            self_link=approach_link,
+            outbound_links=outbound_links,
+            get_turn_data_fn="hello")
+
+        #self.approach_label.setFlag(QGraphicsItem.ItemIsMovable)
+        ap_label.setPos(approach_link.shape_points[1][0], approach_link.shape_points[1][1])
+        self.addItem(ap_label)
+    
     # def load_routes(self, routes: List[RouteInfo]) -> None:
     #     """Transfers data about the routes and od from the Model to the SchematicScene.
 

@@ -193,6 +193,19 @@ class Network():
             print(f'node name {node_name} not found')
             pass
 
+    def get_approach_links(self, node_key):
+        approach_links = []
+        for u in self._graph[node_key].up_neighbors:
+            approach_links.append((u, node_key))
+        return approach_links
+
+    def get_outbound_links(self, node_key):
+        outbound_links = []
+        for j, _ in self._graph[node_key].neighbors.items():
+            outbound_links.append((node_key, j))
+        return outbound_links
+
+
     def calc_network_geh(self) -> None:
         """Sum up the total geh of all the links & turns in the network."""
         

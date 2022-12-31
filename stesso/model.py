@@ -83,59 +83,6 @@ class Model():
 
         balancer.balance_volumes(self.net)
 
-#     def estimate_od(self, weight_total_geh=None, weight_odsse=None, weight_route_ratio=None):
-#         """Estimate an OD matrix that attempts to meet various network volume targets.
-        
-#         By default the ODME objective function weights are None. Passing None 
-#         allows odme.estimate_od function to set the default objective function weights.
-        
-#         Parameters
-#         ----------
-#         weight_total_geh : float, optional
-#             Objective function weight of the sum of all GEH values in the network.
-#         weight_odsse : float, optional
-#             Objective function weight for the influence of the seed matrix. Higher
-#             weight means the estimated matrix should have values close to the
-#             seed matrix, even if that means sacrificing link and turn GEH.
-#         weight_route_ratio : float, optional
-#             Objective function weight of the OD route ratios.
-            
-#         Returns
-#         -------
-#         List[float]
-#             List of the final values of the ODME objective function variables.
-#         """
-#         if self.od_seed is None or self.net is None:
-#             return
-
-#         res = odme.estimate_od(self.net, self.od_seed, weight_total_geh, weight_odsse, weight_route_ratio)
-#         return res
-
-#     def export_od(self, output_folder=None) -> None:
-#         """Write estimated OD to csv."""
-#         output_folder = _clean_folder_path(output_folder)
-#         od_write.export_od_as_list(self.net, output_folder)
-
-#     def export_turns(self, output_folder=None) -> None:
-#         """Write turns to csv."""
-#         output_folder = _clean_folder_path(output_folder)
-#         net_write.export_turns(self.net, output_folder)
-
-#     def export_od_by_route(self, output_folder=None) -> None:
-#         """Write estimated OD to csv, in list format, one row per OD pair."""
-#         output_folder = _clean_folder_path(output_folder)
-#         od_write.export_od_by_route(self.net, output_folder)
-
-#     def export_node_sequence(self, output_folder=None) -> None:
-#         """Write the links and turns on every OD route to csv."""
-#         output_folder = _clean_folder_path(output_folder)
-#         net_write.export_node_sequences(self.net, output_folder)
-
-#     def export_route_list(self, output_folder=None) -> None:
-#         """Export the nodes along each route. One row per route."""
-#         output_folder = _clean_folder_path(output_folder)
-#         net_write.export_route_list(self.net, output_folder)
-
     def get_node_xy(self):
         """Return xy coordinates for each node."""
         if not self.net:
@@ -150,25 +97,29 @@ class Model():
         
         return [(i, j, self.net.link(i, j).shape_points) for (i, j), _ in self.net.links(True)]
 
-#     def get_route_list(self):
-#         """Return basic OD information for each route."""
-#         routes = [] # type: List[RouteInfo]
+    def get_nodes_to_label(self):
+        # TODO: WIP: returning one test node for now.
         
-#         for od in self.net.od:
-#             o_name = self.net.node(od.origin).name
-#             d_name = self.net.node(od.destination).name
+        nodes_to_label = []
+        j, node = self.net.get_node_by_name('102')
+        inbound_links = self.net.get_approach_links(j)
+        outbound_links = self.net.get_outbound_links(j)
 
-#             for route in od.routes:
-#                 basic_info = RouteInfo(od.origin, 
-#                                        od.destination, 
-#                                        o_name,
-#                                        d_name,
-#                                        route.name,
-#                                        route.nodes)
+        # TODO: handle case when inbound_links is empty
+        label_list = []
+        for link in inbound_links:            
+            i = link[0]
+            turns = []
+            for (_, k) in outbound_links:
+                if i == k: continue
+                test_turn = self.net.turn(i, j, k)
+                if test_turn is None: continue
+                turns.append(test_turn)
 
-#                 routes.append(basic_info)
+            label_list.append((link, turns))
 
-#         return routes
+        nodes_to_label.append((j, label_list))
+        return nodes_to_label
 
 
 def _clean_file_path(file_path: str) -> str:

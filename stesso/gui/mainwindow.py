@@ -82,9 +82,9 @@ class MainWindow(QMainWindow):
             print("Loading not successful")
             return
         
-
         self.schematic_scene.load_network(self.model.get_node_xy(), 
-                                          self.model.get_link_end_ids())
+                                          self.model.get_link_end_ids(),
+                                          self.model.get_nodes_to_label())
 
         # Set scene rectangle to something larger than the network.
         # This helps with panning & zooming near the edges of the network.
@@ -99,6 +99,9 @@ class MainWindow(QMainWindow):
 
         # Flip y coordinates to make y coordinates increasing from bottom to top.
         self.ui.gvSchematic.scale(1, -1)
+
+
+
 
         # routes = self.model.get_route_list()
         # self.od_table_model = od_tablemodel.ODTableModel(routes)
