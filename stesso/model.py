@@ -132,36 +132,45 @@ class Model():
         return text
 
     def get_nodes_to_label(self):
-        # TODO: WIP: returning one test node for now.
+        """Return data needed to label nodes that have more than one upstream or 
+        downstream neighbor.
+        """
         
         nodes_to_label: list[NodeApproachLabelData] = []
 
-        j, _ = self.net.get_node_by_name('102')
-        inbound_links = self.net.get_approach_links(j)
-        outbound_links = self.net.get_outbound_links(j)
+        for node in self.net.nodes():
+            count_up = len(node.up_neighbors)
+            count_dn = len(node.neighbors)
 
-        # TODO: handle case when inbound_links is empty
-        approach_labels: list[ApproachLabelData] = []
+            if ((count_up == 0) or (count_up == 1)) and (
+                (count_dn == 0) or (count_dn == 1)):
+               continue
 
-        for link_in in inbound_links:            
-            i = link_in.key[0]
-            turns: list[TurnLabelData] = []
-            for link_out in outbound_links:
-                k = link_out.key[1]
-                if i == k: continue
-                test_turn = self.net.turn(i, j, k)
-                if test_turn is None: continue
-                turns.append(TurnLabelData(key=test_turn.key))
+            j = node.key
+            inbound_links = self.net.get_approach_links(j)
+            outbound_links = self.net.get_outbound_links(j)
 
-            approach_labels.append(
-                ApproachLabelData(
-                    link_key=link_in.key,
-                    turns=turns))
+            approach_labels: list[ApproachLabelData] = []
 
-        nodes_to_label.append(
-            NodeApproachLabelData(
-                key=j,
-                approaches=approach_labels))
+            for link_in in inbound_links:            
+                i = link_in.key[0]
+                turns: list[TurnLabelData] = []
+                for link_out in outbound_links:
+                    k = link_out.key[1]
+                    if i == k: continue
+                    test_turn = self.net.turn(i, j, k)
+                    if test_turn is None: continue
+                    turns.append(TurnLabelData(key=test_turn.key))
+
+                approach_labels.append(
+                    ApproachLabelData(
+                        link_key=link_in.key,
+                        turns=turns))
+
+            nodes_to_label.append(
+                NodeApproachLabelData(
+                    key=j,
+                    approaches=approach_labels))
                 
         return nodes_to_label
 
