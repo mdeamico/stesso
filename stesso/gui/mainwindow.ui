@@ -23,7 +23,7 @@
    </size>
   </property>
   <property name="windowTitle">
-   <string>Jodeln</string>
+   <string>Stesso</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <property name="sizePolicy">

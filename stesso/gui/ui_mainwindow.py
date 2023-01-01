@@ -99,7 +99,7 @@ class Ui_MainWindow(object):
     # setupUi
 
     def retranslateUi(self, MainWindow):
-        MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"Jodeln", None))
+        MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"Stesso", None))
         self.pbShowDialogOpen.setText(QCoreApplication.translate("MainWindow", u"Open", None))
         self.pbBalance.setText(QCoreApplication.translate("MainWindow", u"Balance", None))
         self.pbShowExportDialog.setText(QCoreApplication.translate("MainWindow", u"Export", None))
