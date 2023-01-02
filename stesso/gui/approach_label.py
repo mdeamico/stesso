@@ -46,7 +46,7 @@ class ApproachLabel(QGraphicsItem):
 
         # Column 2
         self.text_columns.append({
-            'info': 'geh', 
+            'info': 'assigned_volume', 
             'max_char': 0, 
             'text_prefix': "<",
             'text_postfix': ">",
@@ -142,6 +142,16 @@ class ApproachLabel(QGraphicsItem):
         self.height = SCALE_VALUE * self.rows
 
         self.setRotation(-self.angle)
+
+    def update_text(self):
+        for row, (turn_key, t) in enumerate(self.turns.items()):
+            for col in self.text_columns:
+                info = col['info']
+                turn_text = self.get_turn_text(turn_key, info)
+                label_text = f"{col['text_prefix']}{turn_text}{col['text_postfix']}"
+                col['max_char'] = max(len(label_text), col['max_char'])
+                col['rows'][row].update_message(label_text)
+
 
     def get_offset(self) -> QPointF:
         offset: QLineF = self.approach_line.unitVector()

@@ -69,6 +69,7 @@ class SchematicScene(QGraphicsScene):
         self.links: dict[tuple[int, int], LinkItem] = {}
         # self.routes = {}
         self.get_turn_text_fn: Callable[[tuple[int, int, int], str], str] = None
+        self.approach_labels: list[ApproachLabel] = []
 
     def load_network(
         self, 
@@ -102,9 +103,10 @@ class SchematicScene(QGraphicsScene):
 
         for node in node_label_info:            
             for approach in node.approaches:
-                self.add_approach_label(node.key, approach)
+                lbl = self.add_approach_label(node.key, approach)
+                self.approach_labels.append(lbl)
 
-    def add_approach_label(self, node_key: int, approach: 'ApproachLabelData') -> None:
+    def add_approach_label(self, node_key: int, approach: 'ApproachLabelData') -> ApproachLabel:
  
         approach_link = self.links[approach.link_key]
         approach_turns = approach.turns
@@ -125,7 +127,14 @@ class SchematicScene(QGraphicsScene):
 
         self.addItem(ap_label)
         self.addEllipse(ap_label.pos().x(), ap_label.pos().y(), 5, 5)
+
+        return ap_label
     
+    def update_approach_labels(self) -> None:
+        for lbl in self.approach_labels:
+            lbl.update_text()
+
+
     # def load_routes(self, routes: List[RouteInfo]) -> None:
     #     """Transfers data about the routes and od from the Model to the SchematicScene.
 

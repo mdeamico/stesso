@@ -126,6 +126,8 @@ class Model():
                 text = str(turn.geh)
             case "target_volume": 
                 text = f'{turn.target_volume:.0f}'
+            case "assigned_volume": 
+                text = f'{turn.assigned_volume:.0f}'
             case _:
                 text = "NA"
         
