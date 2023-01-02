@@ -103,54 +103,51 @@ class ApproachLabel(QGraphicsItem):
             new_tm_arrow.setPos(0, row * SCALE_VALUE)
 
             for col in self.text_columns:
-                info = col['info']
-
-                turn_text = self.get_turn_text(turn_key, info)
-
-                label_text = f"{col['text_prefix']}{turn_text}{col['text_postfix']}"
-
-                new_label = LabelText(self, label_text, self.flip)
-                
-                col['max_char'] = max(len(label_text), col['max_char'])
+                new_label = LabelText(self, "0", self.flip)
                 col['rows'].append(new_label)
 
-        # Set text position
-        
-        char_width = 10
-        #prev_x_pos = SCALE_VALUE - 100
-        #prev_x_pos = 0
-        #prev_x_pos = (self.text_columns[0]['max_char'] * char_width) - 100 + char_width
-        prev_x_pos = -100 + SCALE_VALUE
+        self.update_text()
+        self.height = SCALE_VALUE * self.rows
+        self.setRotation(-self.angle)
 
-        prev_max_char = 0
-        # self.flip = False
+    def update_text(self):
+        self._reset_max_char()
+
+        for row, (turn_key, t) in enumerate(self.turns.items()):
+            for col in self.text_columns:
+                info = col['info']
+                
+                turn_text = self.get_turn_text(turn_key, info)
+                label_text = f"{col['text_prefix']}{turn_text}{col['text_postfix']}"
+                col['max_char'] = max(len(label_text), col['max_char'])
+
+                col['rows'][row].update_message(label_text)
+
+        self._update_text_pos()
+
+    def _reset_max_char(self):
+        for col in self.text_columns:
+            col['max_char'] = 0
+
+    def _update_text_pos(self):
+        char_width = 10
+        prev_col_max_char = 0
+        prev_col_x_pos = -100 + SCALE_VALUE
+
         if self.flip:
-            prev_x_pos = SCALE_VALUE
+            prev_col_x_pos = SCALE_VALUE
 
         for col in self.text_columns:
             if self.flip:
-                x_pos = prev_x_pos + (prev_max_char * char_width) + char_width
+                x_pos = prev_col_x_pos + (prev_col_max_char * char_width) + char_width
             else:
-                x_pos = prev_x_pos + (col['max_char'] * char_width) + char_width
+                x_pos = prev_col_x_pos + (col['max_char'] * char_width) + char_width
 
             for row, txt in enumerate(col['rows']):
                 txt.setPos(x_pos, row * SCALE_VALUE)
 
-            prev_x_pos = x_pos
-            prev_max_char = col['max_char']
-
-        self.height = SCALE_VALUE * self.rows
-
-        self.setRotation(-self.angle)
-
-    def update_text(self):
-        for row, (turn_key, t) in enumerate(self.turns.items()):
-            for col in self.text_columns:
-                info = col['info']
-                turn_text = self.get_turn_text(turn_key, info)
-                label_text = f"{col['text_prefix']}{turn_text}{col['text_postfix']}"
-                col['max_char'] = max(len(label_text), col['max_char'])
-                col['rows'][row].update_message(label_text)
+            prev_col_x_pos = x_pos
+            prev_col_max_char = col['max_char']
 
 
     def get_offset(self) -> QPointF:
