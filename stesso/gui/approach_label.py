@@ -1,5 +1,5 @@
 from PySide2.QtWidgets import QGraphicsItem
-# from PySide2.QtGui import QBrush, QPen, QPainter, QPainterPath, QFont, QFontMetrics
+from PySide2.QtGui import QBrush, QColor
 from PySide2.QtCore import QRectF, QPointF, QLineF
 
 from .approach_arrow import TMArrow
@@ -131,23 +131,23 @@ class ApproachLabel(QGraphicsItem):
 
     def _update_text_pos(self):
         char_width = 10
-        prev_col_max_char = 0
-        prev_col_x_pos = -100 + SCALE_VALUE
+        prev_col_x_pos = 22 # turn arrow width
 
         if self.flip:
             prev_col_x_pos = SCALE_VALUE
 
         for col in self.text_columns:
-            if self.flip:
-                x_pos = prev_col_x_pos + (prev_col_max_char * char_width) + char_width
-            else:
-                x_pos = prev_col_x_pos + (col['max_char'] * char_width) + char_width
-
+            x_pos = prev_col_x_pos + char_width
             for row, txt in enumerate(col['rows']):
-                txt.setPos(x_pos, row * SCALE_VALUE)
+                
+                if self.flip:
+                    txt_offset = 0
+                else:
+                    txt_offset = (col['max_char'] * char_width) - (len(txt.message) * char_width)
+                    
+                txt.setPos(x_pos + txt_offset, row * SCALE_VALUE)
 
-            prev_col_x_pos = x_pos
-            prev_col_max_char = col['max_char']
+            prev_col_x_pos = x_pos + (col['max_char'] * char_width)
 
 
     def get_offset(self) -> QPointF:
@@ -159,9 +159,13 @@ class ApproachLabel(QGraphicsItem):
         return QRectF(-10, -10, 120, self.height + 20)
 
     def paint(self, painter, option, widget) -> None:
-        # Draw Bounding Rect for debugging
-        painter.drawRect(self.boundingRect())
-        painter.drawEllipse(0,0,3,3)
+        pass
+        if self.flip:
+        # # Draw Bounding Rect for debugging
+        # brush = QBrush(QColor(240, 240, 240))
+        # painter.setBrush(brush)
+            painter.drawRect(self.boundingRect())
+        # painter.drawEllipse(0,0,3,3)
 
     def mousePressEvent(self, event) -> None:
         return super().mousePressEvent(event)

@@ -1,8 +1,9 @@
 from PySide2.QtWidgets import QGraphicsItem
-from PySide2.QtGui import QPainterPath, QFont
+from PySide2.QtGui import QPainterPath, QFont, QBrush, QColor
 from PySide2.QtCore import Qt, QRectF
 
 SCALE_VALUE = 22
+AVG_CHAR_WIDTH = 10
 
 class LabelText(QGraphicsItem):
     def __init__(self, parent, message, flip_text) -> None:
@@ -10,15 +11,16 @@ class LabelText(QGraphicsItem):
         self.setFlags(QGraphicsItem.ItemIsFocusable | QGraphicsItem.ItemIsSelectable)
         self.message = message
         self.flip = flip_text
+        self._debug_clicked = False
 
     def boundingRect(self):
-        return QRectF(-14, -14, 100, 100)
+        return QRectF(0, 0, len(self.message) * AVG_CHAR_WIDTH, 22)
 
-    def shape(self):
-        """Defines the physical shape for selection."""
-        path = QPainterPath()
-        path.addEllipse(0, 0, SCALE_VALUE, SCALE_VALUE)
-        return path
+    # def shape(self):
+    #     """Defines the physical shape for selection."""
+    #     path = QPainterPath()
+    #     path.addEllipse(0, 0, SCALE_VALUE, SCALE_VALUE)
+    #     return path
 
     def paint(self, painter, option, widget) -> None:
 
@@ -30,28 +32,28 @@ class LabelText(QGraphicsItem):
         
         if self.flip:
             #painter.translate(100 + SCALE_VALUE * 2, 22)
-            painter.translate(100, 0)
+            painter.translate(len(self.message) * AVG_CHAR_WIDTH, 0)
             painter.scale(-1, 1)
         else:
             painter.translate(0, 22)
             painter.scale(1, -1)
         
-        # # painter.drawText(SCALE_VALUE, 14, self.message)
-        # painter.drawText(SCALE_VALUE, 0, 100, 22, Qt.AlignRight, self.message)
-        # painter.drawRect(SCALE_VALUE, 0, 100, 22)
-        # painter.drawRect(100 + SCALE_VALUE * 2, 0, 2, 22)
+        # Draw Bounding Rect for debugging
+        text_width = len(self.message) * AVG_CHAR_WIDTH
 
-        # painter.translate(100 + 0 * 2, 22)
-        # painter.scale(-1, -1)
+        # brush = QBrush(QColor(240, 240, 240))
+        # painter.setBrush(brush)
+        if self._debug_clicked:
+            painter.drawRect(self.boundingRect())
+            painter.drawEllipse(0, 0, 5, 5)
+
         
-        # painter.drawText(SCALE_VALUE, 14, self.message)
-        painter.drawText(0, 0, 100, 22, Qt.AlignRight, self.message)
-        #painter.drawRect(0, 0, 100, 22)
-        # painter.drawRect(100 + 0 * 2, 0, 2, 22)
+        painter.drawText(0, 0, len(self.message) * AVG_CHAR_WIDTH, 22, Qt.AlignRight, self.message)
         
 
     def mousePressEvent(self, event) -> None:
-        print("sub item mouse press")
+        print(f"sub item mouse press: {self.message}")
+        self._debug_clicked = not self._debug_clicked
         self.setFocus()
         event.ignore()
 

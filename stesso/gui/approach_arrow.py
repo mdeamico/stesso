@@ -19,7 +19,7 @@ class TMArrow(QGraphicsItem):
         return QRectF(0, 0, SCALE_VALUE, SCALE_VALUE)
     
     def paint(self, painter, option, widget) -> None:
-        #painter.drawRect(QRectF(0, 0, SCALE_VALUE, SCALE_VALUE))
+        painter.drawRect(self.boundingRect())
         
         line_in = QLineF(0, 0, SCALE_VALUE * 0.4, 0)
         # line_in always has zero angle because it is parallel to the approach

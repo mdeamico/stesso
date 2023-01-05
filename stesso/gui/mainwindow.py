@@ -3,14 +3,14 @@ from PySide2.QtWidgets import (
     QAbstractItemView, 
     QDialogButtonBox)
 
-from PySide2.QtGui import QPainter
+from PySide2.QtGui import QPainter, QFont, QFontMetrics
 from PySide2.QtCore import Qt
 
 from gui.ui_mainwindow import Ui_MainWindow
 
 from gui import schematic_scene
 from gui.dialog_open import DialogOpen
-from gui.dialog_export import DialogExport
+# from gui.dialog_export import DialogExport
 
 
 from typing import TYPE_CHECKING
@@ -57,6 +57,12 @@ class MainWindow(QMainWindow):
         self.ui.gvSchematic.setScene(self.schematic_scene)
         self.ui.gvSchematic.setRenderHints(QPainter.Antialiasing)
         
+        # Experimenting with font properties
+        font = QFont("consolas", 14)
+        fm = QFontMetrics(font)
+        print(f"fm.height = {fm.height()}")
+        print(f"fm.averageCharWidth = {fm.averageCharWidth()}")
+        print(f"fm.horizontalAdvance(1234) = {fm.horizontalAdvance('1234')}")
         
         
     def show_dialog_open(self) -> None:
