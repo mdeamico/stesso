@@ -8,6 +8,8 @@ from .approach_text import LabelText
 from typing import Protocol, Callable
 
 SCALE_VALUE = 22
+CHAR_WIDTH = 10
+TURN_ARROW_WIDTH = 22
 
 
 class LinkItemData(Protocol):
@@ -108,6 +110,7 @@ class ApproachLabel(QGraphicsItem):
 
         self.update_text()
         self.height = SCALE_VALUE * self.rows
+        self.width = 120
         self.setRotation(-self.angle)
 
     def update_text(self):
@@ -125,29 +128,34 @@ class ApproachLabel(QGraphicsItem):
 
         self._update_text_pos()
 
+        self.width = 0
+        for col in self.text_columns:
+            self.width += col['max_char']
+
+        self.width = (self.width + len(self.text_columns) + 2) * CHAR_WIDTH + TURN_ARROW_WIDTH
+
     def _reset_max_char(self):
         for col in self.text_columns:
             col['max_char'] = 0
 
     def _update_text_pos(self):
-        char_width = 10
-        prev_col_x_pos = 22 # turn arrow width
+        prev_col_x_pos = TURN_ARROW_WIDTH
 
         if self.flip:
             prev_col_x_pos = SCALE_VALUE
 
         for col in self.text_columns:
-            x_pos = prev_col_x_pos + char_width
+            x_pos = prev_col_x_pos + CHAR_WIDTH
             for row, txt in enumerate(col['rows']):
                 
                 if self.flip:
                     txt_offset = 0
                 else:
-                    txt_offset = (col['max_char'] * char_width) - (len(txt.message) * char_width)
+                    txt_offset = (col['max_char'] * CHAR_WIDTH) - (len(txt.message) * CHAR_WIDTH)
                     
                 txt.setPos(x_pos + txt_offset, row * SCALE_VALUE)
 
-            prev_col_x_pos = x_pos + (col['max_char'] * char_width)
+            prev_col_x_pos = x_pos + (col['max_char'] * CHAR_WIDTH)
 
 
     def get_offset(self) -> QPointF:
@@ -156,7 +164,7 @@ class ApproachLabel(QGraphicsItem):
         return offset.p2()
     
     def boundingRect(self):
-        return QRectF(-10, -10, 120, self.height + 20)
+        return QRectF(-10, -10, self.width, self.height + 20)
 
     def paint(self, painter, option, widget) -> None:
         pass
