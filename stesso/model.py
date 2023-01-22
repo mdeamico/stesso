@@ -133,6 +133,11 @@ class Model():
         
         return text
 
+    def set_turn_volume(self, turn_key: tuple[int, int, int], volume: int) -> None:
+        turn = self.net.turn(*turn_key)
+        turn.assigned_volume = volume
+        # TODO: what else needs to get updated? GEH?
+
     def get_nodes_to_label(self):
         """Return data needed to label nodes that have more than one upstream or 
         downstream neighbor.

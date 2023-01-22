@@ -25,6 +25,7 @@ def event_loop(msec):
 
 class MainTest(unittest.TestCase):
     def setUp(self) -> None:
+        app = QApplication(sys.argv)
         model = Model()
         self.window = stesso.main.MainWindow(model)
         return super().setUp()
@@ -42,5 +43,4 @@ class MainTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    app = QApplication(sys.argv)
     unittest.main()

@@ -103,10 +103,12 @@ class SchematicScene(QGraphicsScene):
 
         for node in node_label_info:            
             for approach in node.approaches:
-                lbl = self.add_approach_label(node.key, approach)
+                lbl = self.create_approach_label(node.key, approach)
                 self.approach_labels.append(lbl)
+                self.addItem(lbl)
+                self.addEllipse(lbl.pos().x(), lbl.pos().y(), 5, 5)
 
-    def add_approach_label(self, node_key: int, approach: 'ApproachLabelData') -> ApproachLabel:
+    def create_approach_label(self, node_key: int, approach: 'ApproachLabelData') -> ApproachLabel:
  
         approach_link = self.links[approach.link_key]
         approach_turns = approach.turns
@@ -124,16 +126,26 @@ class SchematicScene(QGraphicsScene):
         ap_label.setFlag(QGraphicsItem.ItemIsMovable)
         # ap_label.setPos(approach_link.pts[1][0], approach_link.pts[1][1])
         ap_label.setPos(ap_label.get_offset())
-
-        self.addItem(ap_label)
-        self.addEllipse(ap_label.pos().x(), ap_label.pos().y(), 5, 5)
-
         return ap_label
     
     def update_approach_labels(self) -> None:
         for lbl in self.approach_labels:
             lbl.update_text()
 
+    def connect_txt_signals(self, show_dialog_fn):
+        """Connect approach text signal to the input dialog slot.
+        
+        Call this function from the MainWindow.
+        """
+        for lbl in self.approach_labels:
+            lbl.connect_txt_signals(show_dialog_fn)
+
+    def get_selected_text(self) -> list:
+        return_list = []
+        for lbl in self.approach_labels:
+            for txt in lbl.get_selected_text():
+                return_list.append(txt)
+        return return_list
 
     # def load_routes(self, routes: List[RouteInfo]) -> None:
     #     """Transfers data about the routes and od from the Model to the SchematicScene.

@@ -1,6 +1,6 @@
 from PySide2.QtWidgets import QGraphicsItem
 from PySide2.QtGui import QBrush, QColor
-from PySide2.QtCore import QRectF, QPointF, QLineF
+from PySide2.QtCore import QRectF, QPointF, QLineF, Slot
 
 from .approach_arrow import TMArrow
 from .approach_text import LabelText
@@ -52,7 +52,7 @@ class ApproachLabel(QGraphicsItem):
             'max_char': 0, 
             'text_prefix': "<",
             'text_postfix': ">",
-            'rows': []              
+            'rows': []            
         })
 
         self.get_turn_text = get_turn_text_fn
@@ -105,13 +105,35 @@ class ApproachLabel(QGraphicsItem):
             new_tm_arrow.setPos(0, row * SCALE_VALUE)
 
             for col in self.text_columns:
-                new_label = LabelText(self, "0", self.flip)
-                col['rows'].append(new_label)
+                new_text = LabelText(self, "0", self.flip, turn_key)
+                # new_text.signals.is_selected.connect(self.show_edit_dialog)
+                col['rows'].append(new_text)
 
         self.update_text()
         self.height = SCALE_VALUE * self.rows
         self.width = 120
         self.setRotation(-self.angle)
+
+    @Slot(tuple, bool)
+    def show_edit_dialog(self, key, selected):
+        print(f"slot from approach_label: {key} {selected}")
+        self.show_input_dialog_fn(key, selected)
+
+    def connect_txt_signals(self, show_dialog_fn):
+        for col in self.text_columns:
+            # filter based on what the text is showing (assigned volume, target volume, etc)
+            if col['info'] != "assigned_volume":
+                continue
+            for txt in col['rows']:
+                txt.signals.is_selected.connect(show_dialog_fn)
+
+    def get_selected_text(self):
+        selected = []
+        for col in self.text_columns:
+            for txt in col['rows']:
+                if txt._debug_clicked:
+                    selected.append(txt.key)
+        return selected
 
     def update_text(self):
         self._reset_max_char()
