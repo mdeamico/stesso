@@ -2,7 +2,7 @@ from PySide2.QtWidgets import QGraphicsItem
 from PySide2.QtGui import QBrush, QColor
 from PySide2.QtCore import QRectF, QPointF, QLineF, Slot
 
-from .approach_arrow import TMArrow
+from .approach_tmarrow import TMArrow
 from .approach_text import LabelText
 
 from typing import Protocol, Callable
@@ -59,7 +59,7 @@ class ApproachLabel(QGraphicsItem):
     
         # Calculate angle based on self.link
         # Measure angle of line starting from the central intersection node.
-        # Example: At intersection A, approach CA angle is measured from A to C
+        # Example: At intersection A, approach CA angle is measured from A0 to AC
         #  
         #       C .......
         #        \      . angle
@@ -86,12 +86,13 @@ class ApproachLabel(QGraphicsItem):
                QLineF(outbound_link.pts[0][0], outbound_link.pts[0][1],
                       outbound_link.pts[1][0], outbound_link.pts[1][1])
 
-            angle = self.approach_line.angleTo(outbound_line)
+            angle_rel = self.approach_line.angleTo(outbound_line)
 
             key_k = outbound_link.key[1]
             self.turns[(key_i, key_j, key_k)] = {
-                'angle_rel': angle, 
-                'angle': outbound_line.angle()
+                'angle_rel': angle_rel, 
+                'angle': outbound_line.angle(),
+                'outbound_line': outbound_line
                 }
 
         # Sort turns by angle relative to self
@@ -189,13 +190,12 @@ class ApproachLabel(QGraphicsItem):
         return QRectF(-10, -10, self.width, self.height + 20)
 
     def paint(self, painter, option, widget) -> None:
-        pass
         if self.flip:
-        # # Draw Bounding Rect for debugging
-        # brush = QBrush(QColor(240, 240, 240))
-        # painter.setBrush(brush)
+            # # Draw Bounding Rect for debugging
+            # brush = QBrush(QColor(240, 240, 240))
+            # painter.setBrush(brush)
             painter.drawRect(self.boundingRect())
-        # painter.drawEllipse(0,0,3,3)
+            # painter.drawEllipse(0,0,3,3)
 
     def mousePressEvent(self, event) -> None:
         return super().mousePressEvent(event)
