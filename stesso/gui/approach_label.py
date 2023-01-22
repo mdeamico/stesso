@@ -34,6 +34,8 @@ class ApproachLabel(QGraphicsItem):
         self.outbound_links = outbound_links
         self.rows = len(outbound_links)
 
+        self.tm_hints = []
+
         # keep track of what is in each column of text      
         self.text_columns = []
         
@@ -69,7 +71,9 @@ class ApproachLabel(QGraphicsItem):
         self.approach_line = \
                QLineF(self.link.pts[1][0], self.link.pts[1][1],
                       self.link.pts[0][0], self.link.pts[0][1])
-        
+        # print("approach line: ")
+        # print(self.approach_line)
+
         self.angle = self.approach_line.angle()
         self.flip = (self.angle > 90) and (self.angle <= 270)
 
@@ -92,6 +96,7 @@ class ApproachLabel(QGraphicsItem):
             self.turns[(key_i, key_j, key_k)] = {
                 'angle_rel': angle_rel, 
                 'angle': outbound_line.angle(),
+                'approach_line': self.approach_line,
                 'outbound_line': outbound_line
                 }
 
@@ -115,18 +120,23 @@ class ApproachLabel(QGraphicsItem):
         self.width = 120
         self.setRotation(-self.angle)
 
-    @Slot(tuple, bool)
-    def show_edit_dialog(self, key, selected):
-        print(f"slot from approach_label: {key} {selected}")
-        self.show_input_dialog_fn(key, selected)
 
-    def connect_txt_signals(self, show_dialog_fn):
+    @Slot(tuple, bool)
+    def test_signal(self, key, selected):
+        print(f"slot from approach_label: {key} {selected}")
+        # self.show_input_dialog_fn(key, selected)
+
+    def connect_txt_signals(self, show_dialog_fn, show_tm_hint_fn):
         for col in self.text_columns:
             # filter based on what the text is showing (assigned volume, target volume, etc)
             if col['info'] != "assigned_volume":
                 continue
             for txt in col['rows']:
                 txt.signals.is_selected.connect(show_dialog_fn)
+                txt.signals.is_selected.connect(show_tm_hint_fn)
+
+                # For Debugging
+                txt.signals.is_selected.connect(self.test_signal)
 
     def get_selected_text(self):
         selected = []

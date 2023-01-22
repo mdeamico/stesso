@@ -1,9 +1,11 @@
 from PySide2.QtWidgets import QGraphicsScene, QGraphicsItem
+from PySide2.QtCore import Slot
 from .schematic_items import LinkItem, NodeItem
 
 from typing import TYPE_CHECKING, Protocol, Callable
 
 from .approach_label import ApproachLabel
+from .approach_tmhint import TMHint
 
 if TYPE_CHECKING:
     import PySide2.QtWidgets    
@@ -70,6 +72,7 @@ class SchematicScene(QGraphicsScene):
         # self.routes = {}
         self.get_turn_text_fn: Callable[[tuple[int, int, int], str], str] = None
         self.approach_labels: list[ApproachLabel] = []
+        self.tm_hints: dict[tuple[int, int, int], TMHint] = {}
 
     def load_network(
         self, 
@@ -106,7 +109,23 @@ class SchematicScene(QGraphicsScene):
                 lbl = self.create_approach_label(node.key, approach)
                 self.approach_labels.append(lbl)
                 self.addItem(lbl)
+                lbl.setPos(lbl.get_offset())
+
+                # Add Turn Hints
+                for (turn_key, t) in lbl.turns.items():
+                    tm_hint = TMHint(t['approach_line'], t['outbound_line'])
+                    self.tm_hints[turn_key] = tm_hint
+                    self.addItem(tm_hint)
+
+                # For Debug
                 self.addEllipse(lbl.pos().x(), lbl.pos().y(), 5, 5)
+
+        # # FIXME: Need to figure out how to update positions post-init.
+        # for ap_label in self.approach_labels:
+        #     for hint in ap_label.tm_hints:
+        #         hint.update_polygon()
+        #         self.addItem(hint)
+
 
     def create_approach_label(self, node_key: int, approach: 'ApproachLabelData') -> ApproachLabel:
  
@@ -125,20 +144,24 @@ class SchematicScene(QGraphicsScene):
 
         ap_label.setFlag(QGraphicsItem.ItemIsMovable)
         # ap_label.setPos(approach_link.pts[1][0], approach_link.pts[1][1])
-        ap_label.setPos(ap_label.get_offset())
         return ap_label
     
     def update_approach_labels(self) -> None:
         for lbl in self.approach_labels:
             lbl.update_text()
 
-    def connect_txt_signals(self, show_dialog_fn):
+    @Slot(tuple, bool)
+    def select_tm_hint(self, turn_key: tuple, selected: bool):
+        print(f"selected! {turn_key} {selected}")
+        self.tm_hints[turn_key].selected = selected
+
+    def connect_txt_signals(self, show_dialog_fn: Callable):
         """Connect approach text signal to the input dialog slot.
         
         Call this function from the MainWindow.
         """
         for lbl in self.approach_labels:
-            lbl.connect_txt_signals(show_dialog_fn)
+            lbl.connect_txt_signals(show_dialog_fn, self.select_tm_hint)
 
     def get_selected_text(self) -> list:
         return_list = []
