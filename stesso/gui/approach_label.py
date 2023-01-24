@@ -111,7 +111,7 @@ class ApproachLabel(QGraphicsItem):
             new_tm_arrow.setPos(0, row * SCALE_VALUE)
 
             for col in self.text_columns:
-                new_text = LabelText(self, "0", self.flip, turn_key)
+                new_text = LabelText(self, "0", self.flip, turn_key, False)
                 # new_text.signals.is_selected.connect(self.show_edit_dialog)
                 col['rows'].append(new_text)
 
@@ -132,11 +132,23 @@ class ApproachLabel(QGraphicsItem):
             if col['info'] != "assigned_volume":
                 continue
             for txt in col['rows']:
+                txt.is_selectable = True
                 txt.signals.is_selected.connect(show_dialog_fn)
                 txt.signals.is_selected.connect(show_tm_hint_fn)
 
                 # For Debugging
                 txt.signals.is_selected.connect(self.test_signal)
+    
+    def get_text_items(self) -> list[LabelText]:
+        items = []
+        for col in self.text_columns:
+            # filter based on what the text is showing (assigned volume, target volume, etc)
+            if col['info'] != "assigned_volume":
+                continue
+            for txt in col['rows']:
+                items.append(txt)
+        
+        return items
 
     def get_selected_text(self):
         selected = []

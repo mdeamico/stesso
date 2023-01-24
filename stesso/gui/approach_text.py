@@ -12,7 +12,7 @@ class Communicate(QObject):
 
 class LabelText(QGraphicsItem):
 
-    def __init__(self, parent, message, flip_text, key: tuple) -> None:
+    def __init__(self, parent, message, flip_text, key: tuple, is_selectable: bool) -> None:
         super().__init__(parent)
         # self.setFlags(QGraphicsItem.ItemIsFocusable | QGraphicsItem.ItemIsSelectable)
         # TODO: store text "info" assigned_volume, target_volume, etc...
@@ -21,6 +21,7 @@ class LabelText(QGraphicsItem):
         self.flip = flip_text
         self._debug_clicked = False
         self.signals = Communicate()
+        self.is_selectable = is_selectable
         self.setToolTip(f"Tool Tip Test: {self.message}")
 
     def slot_test(self, message):
@@ -62,10 +63,14 @@ class LabelText(QGraphicsItem):
 
         
         painter.drawText(0, 0, len(self.message) * AVG_CHAR_WIDTH, 22, Qt.AlignRight, self.message)
-        
+    
+    
 
     def mousePressEvent(self, event) -> None:
-        print(f"approach_text mouse press: {self.message}")
+        print(f"approach_text mouse press: {self.message} selectable?{self.is_selectable}")
+        if not self.is_selectable:
+            return
+            
         self._debug_clicked = not self._debug_clicked
         self.signals.is_selected.emit(self.key, self._debug_clicked)
         # self.setFocus()

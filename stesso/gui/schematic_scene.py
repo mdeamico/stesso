@@ -5,6 +5,7 @@ from .schematic_items import LinkItem, NodeItem
 from typing import TYPE_CHECKING, Protocol, Callable
 
 from .approach_label import ApproachLabel
+from .approach_text import LabelText
 from .approach_tmhint import TMHint
 
 if TYPE_CHECKING:
@@ -73,6 +74,8 @@ class SchematicScene(QGraphicsScene):
         self.get_turn_text_fn: Callable[[tuple[int, int, int], str], str] = None
         self.approach_labels: list[ApproachLabel] = []
         self.tm_hints: dict[tuple[int, int, int], TMHint] = {}
+        self.tm_selection_set = set([])
+        self.tm_text_items: dict[tuple[int, int, int], LabelText] = {}
 
     def load_network(
         self, 
@@ -151,9 +154,22 @@ class SchematicScene(QGraphicsScene):
             lbl.update_text()
 
     @Slot(tuple, bool)
-    def select_tm_hint(self, turn_key: tuple, selected: bool):
+    def new_tm_selection(self, turn_key: tuple, selected: bool):
         print(f"selected! {turn_key} {selected}")
+
+        if selected:
+            # Clear current selection
+            for key in self.tm_selection_set:
+                self.tm_text_items[key]._debug_clicked = False
+                self.tm_hints[key].selected = False
+            self.tm_selection_set.clear()
+
+            self.tm_selection_set.add(turn_key)
+        else:
+            self.tm_selection_set.discard(turn_key)
+
         self.tm_hints[turn_key].selected = selected
+        
 
     def connect_txt_signals(self, show_dialog_fn: Callable):
         """Connect approach text signal to the input dialog slot.
@@ -161,14 +177,15 @@ class SchematicScene(QGraphicsScene):
         Call this function from the MainWindow.
         """
         for lbl in self.approach_labels:
-            lbl.connect_txt_signals(show_dialog_fn, self.select_tm_hint)
+            for txt in lbl.get_text_items():
+                self.tm_text_items[txt.key] = txt
+
+        for lbl in self.approach_labels:
+            lbl.connect_txt_signals(show_dialog_fn, self.new_tm_selection)
 
     def get_selected_text(self) -> list:
-        return_list = []
-        for lbl in self.approach_labels:
-            for txt in lbl.get_selected_text():
-                return_list.append(txt)
-        return return_list
+        return list(self.tm_selection_set)
+
 
     # def load_routes(self, routes: List[RouteInfo]) -> None:
     #     """Transfers data about the routes and od from the Model to the SchematicScene.
