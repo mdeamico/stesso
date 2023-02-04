@@ -39,21 +39,7 @@
         <string/>
        </property>
        <property name="text">
-        <string>Export List of Turns</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="pbExportRoutes">
-       <property name="text">
-        <string>Export List of Routes</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="pbExportLinksAndTurnsByOD">
-       <property name="text">
-        <string>Export links and turns along each OD</string>
+        <string>Export Turning Volumes</string>
        </property>
       </widget>
      </item>

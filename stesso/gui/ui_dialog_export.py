@@ -43,16 +43,6 @@ class Ui_Dialog(object):
 
         self.verticalLayout.addWidget(self.pbExportTurns)
 
-        self.pbExportRoutes = QPushButton(Dialog)
-        self.pbExportRoutes.setObjectName(u"pbExportRoutes")
-
-        self.verticalLayout.addWidget(self.pbExportRoutes)
-
-        self.pbExportLinksAndTurnsByOD = QPushButton(Dialog)
-        self.pbExportLinksAndTurnsByOD.setObjectName(u"pbExportLinksAndTurnsByOD")
-
-        self.verticalLayout.addWidget(self.pbExportLinksAndTurnsByOD)
-
 
         self.verticalLayout_2.addLayout(self.verticalLayout)
 
@@ -78,8 +68,6 @@ class Ui_Dialog(object):
 #if QT_CONFIG(tooltip)
         self.pbExportTurns.setToolTip("")
 #endif // QT_CONFIG(tooltip)
-        self.pbExportTurns.setText(QCoreApplication.translate("Dialog", u"Export List of Turns", None))
-        self.pbExportRoutes.setText(QCoreApplication.translate("Dialog", u"Export List of Routes", None))
-        self.pbExportLinksAndTurnsByOD.setText(QCoreApplication.translate("Dialog", u"Export links and turns along each OD", None))
+        self.pbExportTurns.setText(QCoreApplication.translate("Dialog", u"Export Turning Volumes", None))
     # retranslateUi
 

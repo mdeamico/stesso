@@ -11,7 +11,7 @@ from gui.ui_mainwindow import Ui_MainWindow
 
 from gui import schematic_scene
 from gui.dialog_open import DialogOpen
-# from gui.dialog_export import DialogExport
+from gui.dialog_export import DialogExport
 from gui.dialog_vol_input import DialogVolInput
 
 
@@ -35,24 +35,18 @@ class MainWindow(QMainWindow):
         # Volume Input Dialog
         self.input_dialog = DialogVolInput(self)
         self.input_dialog.ui.buttonBox.button(QDialogButtonBox.Ok).clicked.connect(self.set_text)
+        self.input_dialog.ui.buttonBox.button(QDialogButtonBox.Cancel).clicked.connect(self.clear_tm_selection)
 
         # Dialog Open
         self.dialog_open = DialogOpen()
         self.dialog_open.ui.buttonBox.button(QDialogButtonBox.Ok).clicked.connect(self.load)
 
-    #     # Dialog Export
-    #     self.dialog_export = DialogExport(
-    #         cb_export_links_and_turns_by_od=self.model.export_node_sequence,
-    #         cb_export_routes=self.model.export_route_list,
-    #         cb_export_turns=self.model.export_turns
-    #     )
-
-    #     # Dialog ODME
-    #     self.dialog_odme = DialogODME(cb_odme=self.estimate_od)
+        # Dialog Export
+        self.dialog_export = DialogExport(cb_export_turns=self.model.export_turns)
 
         # Connect push buttons to slot functions
         self.ui.pbShowDialogOpen.clicked.connect(self.show_dialog_open)
-        # self.ui.pbShowExportDialog.clicked.connect(self.show_dialog_export)
+        self.ui.pbShowExportDialog.clicked.connect(self.show_dialog_export)
         self.ui.pbBalance.clicked.connect(self.balance_volumes)
 
 
@@ -72,6 +66,8 @@ class MainWindow(QMainWindow):
         print(f"fm.averageCharWidth = {fm.averageCharWidth()}")
         print(f"fm.horizontalAdvance(1234) = {fm.horizontalAdvance('1234')}")
 
+    def clear_tm_selection(self):
+        self.schematic_scene.clear_tm_selection()
 
     def set_text(self):
         """Function for when OK is pressed on the text input dialog."""
@@ -88,7 +84,7 @@ class MainWindow(QMainWindow):
             self.model.set_turn_volume(turn_key, user_input)
         
         self.schematic_scene.update_approach_labels()
-        self.schematic_scene.clear_tm_selection()
+        self.clear_tm_selection()
 
 
     def show_input_dialog_fn(self, key, selected) -> None:
@@ -123,8 +119,8 @@ class MainWindow(QMainWindow):
         self.dialog_open.store_data()
         self.dialog_open.show()
 
-    # def show_dialog_export(self) -> None:
-    #     self.dialog_export.show()
+    def show_dialog_export(self) -> None:
+        self.dialog_export.show()
 
 
 
