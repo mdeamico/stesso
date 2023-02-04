@@ -88,6 +88,7 @@ class MainWindow(QMainWindow):
             self.model.set_turn_volume(turn_key, user_input)
         
         self.schematic_scene.update_approach_labels()
+        self.schematic_scene.clear_tm_selection()
 
 
     def show_input_dialog_fn(self, key, selected) -> None:

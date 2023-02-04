@@ -153,17 +153,18 @@ class SchematicScene(QGraphicsScene):
         for lbl in self.approach_labels:
             lbl.update_text()
 
+    def clear_tm_selection(self):
+        for key in self.tm_selection_set:
+            self.tm_text_items[key]._debug_clicked = False
+            self.tm_hints[key].selected = False
+        self.tm_selection_set.clear()
+
     @Slot(tuple, bool)
     def new_tm_selection(self, turn_key: tuple, selected: bool):
         print(f"selected! {turn_key} {selected}")
 
         if selected:
-            # Clear current selection
-            for key in self.tm_selection_set:
-                self.tm_text_items[key]._debug_clicked = False
-                self.tm_hints[key].selected = False
-            self.tm_selection_set.clear()
-
+            self.clear_tm_selection()
             self.tm_selection_set.add(turn_key)
         else:
             self.tm_selection_set.discard(turn_key)
