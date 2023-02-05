@@ -70,7 +70,6 @@ class SchematicScene(QGraphicsScene):
     def __init__(self):
         super().__init__()
         self.links: dict[tuple[int, int], LinkItem] = {}
-        # self.routes = {}
         self.get_turn_text_fn: Callable[[tuple[int, int, int], str], str] = None
         self.approach_labels: list[ApproachLabel] = []
         self.tm_hints: dict[tuple[int, int, int], TMHint] = {}
@@ -123,13 +122,6 @@ class SchematicScene(QGraphicsScene):
                 # For Debug
                 self.addEllipse(lbl.pos().x(), lbl.pos().y(), 5, 5)
 
-        # # FIXME: Need to figure out how to update positions post-init.
-        # for ap_label in self.approach_labels:
-        #     for hint in ap_label.tm_hints:
-        #         hint.update_polygon()
-        #         self.addItem(hint)
-
-
     def create_approach_label(self, node_key: int, approach: 'ApproachLabelData') -> ApproachLabel:
  
         approach_link = self.links[approach.link_key]
@@ -146,7 +138,6 @@ class SchematicScene(QGraphicsScene):
             get_turn_text_fn=self.get_turn_text_fn)
 
         ap_label.setFlag(QGraphicsItem.ItemIsMovable)
-        # ap_label.setPos(approach_link.pts[1][0], approach_link.pts[1][1])
         return ap_label
     
     def update_approach_labels(self) -> None:
@@ -186,37 +177,6 @@ class SchematicScene(QGraphicsScene):
 
     def get_selected_text(self) -> list:
         return list(self.tm_selection_set)
-
-
-    # def load_routes(self, routes: List[RouteInfo]) -> None:
-    #     """Transfers data about the routes and od from the Model to the SchematicScene.
-
-    #     Parameters
-    #     ----------
-    #     routes : List[RouteInfo]
-    #         Basic info about the route for each OD. 
-    #         Includes route origin, destination, route name, and nodes.
-    #     """
-    #     for route in routes:
-    #         self.routes[(route.origin, route.destination, route.name)] = route.nodes
-
-    # def color_route(self, route, is_selected) -> None:
-    #     """Sets a bool to indicate if the link is on the user-selected path.
-
-    #     LinkItem objects in the scene can update themselves to be colored based
-    #     on the selection bool.
-
-    #     Parameters
-    #     ----------
-    #     route : Tuple
-    #         Route identifier tuple: (route.origin, route.destination, route.name)
-    #     is_selected : bool
-    #         True if the the link is on the user selected path.
-    #     """
-    #     for x in range(len(self.routes[route]) - 1):
-    #         i = self.routes[route][x]
-    #         j = self.routes[route][x + 1]
-    #         self.links[(i, j)].is_on_selected_path = is_selected
 
     def mousePressEvent(self, event: 'PySide2.QtWidgets.QGraphicsSceneMouseEvent') -> None:
         return super().mousePressEvent(event)

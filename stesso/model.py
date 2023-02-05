@@ -12,16 +12,6 @@ if TYPE_CHECKING:
     from .network.netnode import NetNode
     from .network.netlink import NetLinkData
 
-# @dataclass
-# class RouteInfo:
-#     """Basic OD information for a route."""
-#     origin: int
-#     destination: int
-#     o_name: str
-#     d_name: str
-#     name: str
-#     nodes: List
-
 @dataclass
 class TurnLabelData:
     """Data required for turning movement labels."""
@@ -45,7 +35,6 @@ class Model():
     
     These methods are the API for a view/controller to interact with the data.
     """
-    # __slots__ = ['net', 'od_seed']
 
     def __init__(self):
         """Initialize Model with an empty network and empty OD Seed Matrix.

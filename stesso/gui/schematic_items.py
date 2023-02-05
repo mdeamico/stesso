@@ -41,7 +41,6 @@ class LinkItem(QGraphicsItem):
 
         pen.setCosmetic(True)
         painter.setPen(pen)
-        # painter.drawLine(self.ix, self.iy, self.jx, self.jy)
         painter.drawPolyline(self.polyline)
         
 

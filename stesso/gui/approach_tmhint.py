@@ -1,7 +1,7 @@
 from PySide2.QtWidgets import QGraphicsItem
 
 from PySide2.QtGui import QPen, QPolygonF
-from PySide2.QtCore import Qt, QRectF, QLineF
+from PySide2.QtCore import Qt, QLineF
 
 
 SCALE_VALUE = 22
@@ -25,6 +25,3 @@ class TMHint(QGraphicsItem):
         if self.selected:
             painter.setPen(QPen(Qt.blue, 6))
             painter.drawPolyline(self.polygon)
-
-        # painter.setPen(QPen(Qt.green, 6))
-        # painter.drawRect(self.boundingRect())

@@ -1,5 +1,4 @@
 from PySide2.QtWidgets import QGraphicsItem
-from PySide2.QtGui import QBrush, QColor
 from PySide2.QtCore import QRectF, QPointF, QLineF, Slot
 
 from .approach_tmarrow import TMArrow
@@ -71,8 +70,6 @@ class ApproachLabel(QGraphicsItem):
         self.approach_line = \
                QLineF(self.link.pts[1][0], self.link.pts[1][1],
                       self.link.pts[0][0], self.link.pts[0][1])
-        # print("approach line: ")
-        # print(self.approach_line)
 
         self.angle = self.approach_line.angle()
         self.flip = (self.angle > 90) and (self.angle <= 270)

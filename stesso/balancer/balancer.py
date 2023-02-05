@@ -141,20 +141,13 @@ def balance_volumes(net: 'Network') -> None:
 
     np.set_printoptions(linewidth=200)
 
-    # print(A)
-    # print(B)
-
     # --------------------------------------
     # Solve Matrix Equation Ax = B
     # --------------------------------------
-    #result = scipy_nnls(np.dot(W, A), np.dot(W, B))
-    #final_mat = result[0]
     result = scipy_lsq_linear(np.dot(W, A), np.dot(W, B), bounds=(lbounds, ubounds))
     final_mat = result.x
     print(result)
 
-    
-    
     for k, v in matrix_cols_links.items():
         net.link(k[0], k[1]).assigned_volume = final_mat[v]
             
@@ -166,6 +159,5 @@ def balance_volumes(net: 'Network') -> None:
 
     for (i, j), l in net.links(True):
         print(f"({net.node(i).name}, {net.node(j).name}): {l.assigned_volume}")
-
 
     print("done")

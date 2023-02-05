@@ -22,12 +22,11 @@ class TMArrow(QGraphicsItem):
         painter.drawRect(self.boundingRect())
         
         line_in = QLineF(0, 0, SCALE_VALUE * 0.4, 0)
-        # line_in always has zero angle because it is parallel to the approach
-        # line_in.setAngle(self.angle_in)
+        # Line_in always has zero angle because it is parallel to the approach,
+        # so we don't need to call setAngle(). We only need to call translate()
         line_in.translate(SCALE_VALUE / 2, SCALE_VALUE / 2)
         
         line_out = QLineF(0, 0, SCALE_VALUE * 0.4, 0)
-        #line_out.setAngle(self.angle_out)
         line_out.setAngle(self.angle_rel)
         line_out.translate(SCALE_VALUE / 2, SCALE_VALUE / 2)
         
@@ -37,5 +36,3 @@ class TMArrow(QGraphicsItem):
         painter.setPen(QPen(Qt.red, 3))
         painter.drawLine(line_out)
 
-        # painter.drawEllipse(line_out.p2().x(), line_out.p2().y(), 3, 3)
-        #return super().paint(painter, option, widget)

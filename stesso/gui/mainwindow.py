@@ -1,8 +1,6 @@
 from PySide2.QtWidgets import (
     QMainWindow, 
-    QAbstractItemView, 
-    QDialogButtonBox,
-    QInputDialog)
+    QDialogButtonBox)
 
 from PySide2.QtGui import QPainter, QFont, QFontMetrics
 from PySide2.QtCore import Qt
@@ -49,10 +47,8 @@ class MainWindow(QMainWindow):
         self.ui.pbShowExportDialog.clicked.connect(self.show_dialog_export)
         self.ui.pbBalance.clicked.connect(self.balance_volumes)
 
-
     #     # Disable buttons that should only be used after loading a network
     #     self.ui.pbShowExportDialog.setEnabled(False)
-    #     self.ui.pbShowODEstimation.setEnabled(False)
 
         # Setup graphics view
         self.schematic_scene = schematic_scene.SchematicScene()
@@ -77,9 +73,7 @@ class MainWindow(QMainWindow):
 
         user_input = int(self.input_dialog.ui.lineEdit.text())
         print(user_input)
-        # TODO: loop through text_list and update the values in the model,
-        # then call schematic_scene.update_approach_labels(),
-        # then deselect text (?)
+
         for turn_key in text_list:
             self.model.set_turn_volume(turn_key, user_input)
         
@@ -104,16 +98,6 @@ class MainWindow(QMainWindow):
             self.input_dialog.ui.lineEdit.setFocus() 
         else:
             self.input_dialog.show()
-
-        # # ------------ OLD ------------------------
-        # input_dialog = QInputDialog(self)
-        # input_dialog.setWindowFlag(Qt.WindowContextHelpButtonHint, False)
-        # input_dialog.setWindowFlag(Qt.WindowCloseButtonHint, False)
-        # input_dialog.setWindowFlag(Qt.FramelessWindowHint, True)
-        # text, ok = input_dialog.getText(self, 'Input', 'Volume', text=str(message), flags=input_dialog.windowFlags())
-        # if ok:
-        #     print(f"input: {text}")
-
         
     def show_dialog_open(self) -> None:
         self.dialog_open.store_data()
@@ -121,8 +105,6 @@ class MainWindow(QMainWindow):
 
     def show_dialog_export(self) -> None:
         self.dialog_export.show()
-
-
 
     def load(self) -> None:
         """Load nodes, links, etc from user inputs."""
@@ -159,18 +141,9 @@ class MainWindow(QMainWindow):
         # Flip y coordinates to make y coordinates increasing from bottom to top.
         self.ui.gvSchematic.scale(1, -1)
 
+        # Enable buttons that can be used after the network is loaded
+        # self.ui.pbShowExportDialog.setEnabled(True)
 
-
-
-        # routes = self.model.get_route_list()
-        # self.od_table_model = od_tablemodel.ODTableModel(routes)
-        # self.ui.tblOD.setModel(self.od_table_model)
-        # self.ui.tblOD.selectionModel().selectionChanged.connect(self.on_od_table_selection)
-
-        # self.schematic_scene.load_routes(routes)
-
-    #         self.ui.pbShowExportDialog.setEnabled(True)
-    #         self.ui.pbShowODEstimation.setEnabled(True)
     
     def balance_volumes(self):
         self.model.balance_volumes()

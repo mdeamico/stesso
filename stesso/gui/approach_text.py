@@ -1,5 +1,5 @@
 from PySide2.QtWidgets import QGraphicsItem
-from PySide2.QtGui import QPainterPath, QFont, QBrush, QColor
+from PySide2.QtGui import QFont
 from PySide2.QtCore import Qt, QRectF, QObject, Signal
 
 SCALE_VALUE = 22
@@ -30,12 +30,6 @@ class LabelText(QGraphicsItem):
     def boundingRect(self):
         return QRectF(0, 0, len(self.message) * AVG_CHAR_WIDTH, 22)
 
-    # def shape(self):
-    #     """Defines the physical shape for selection."""
-    #     path = QPainterPath()
-    #     path.addEllipse(0, 0, SCALE_VALUE, SCALE_VALUE)
-    #     return path
-
     def paint(self, painter, option, widget) -> None:
 
         # Rotate Text
@@ -63,8 +57,6 @@ class LabelText(QGraphicsItem):
 
         
         painter.drawText(0, 0, len(self.message) * AVG_CHAR_WIDTH, 22, Qt.AlignRight, self.message)
-    
-    
 
     def mousePressEvent(self, event) -> None:
         print(f"approach_text mouse press: {self.message} selectable?{self.is_selectable}")
@@ -73,18 +65,6 @@ class LabelText(QGraphicsItem):
             
         self._debug_clicked = not self._debug_clicked
         self.signals.is_selected.emit(self.key, self._debug_clicked)
-        # self.setFocus()
-        # self.update()
-        # event.ignore()
-
-    # def mouseReleaseEvent(self, event) -> None:
-    #     print("approach_text mouse release")
-
-    # def keyPressEvent(self, event) -> None:
-    #     print(f"approach_text keypress: {event.text()}")
-    #     # self.update_message(event.text())
-    #     # self.update()
-    #     return super().keyPressEvent(event)
     
     def update_message(self, new_text):
         self.message = new_text
