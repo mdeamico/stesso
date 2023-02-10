@@ -123,7 +123,8 @@ class MainWindow(QMainWindow):
         self.schematic_scene.load_network(self.model.get_nodes(), 
                                           self.model.get_links(),
                                           self.model.get_nodes_to_label(),
-                                          self.model.get_turn_text)
+                                          self.model.get_turn_text,
+                                          self.model.get_link_text)
 
         self.schematic_scene.connect_txt_signals(self.show_input_dialog_fn)
 

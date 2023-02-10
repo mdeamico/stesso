@@ -125,13 +125,67 @@ class Network():
             else:
                 yield turn
 
+    def assign_link_flows(self):
+        """Assign inbound and outbound turns for each link."""
+        for (i, j, k), _ in self.turns(True):
+            # if i == k:
+            #     # Discards u-turns. TODO: find a way to better handle u-turns
+            #     continue
+            self.link(i, j).turns_out.append((i, j, k))
+            self.link(j, k).turns_in.append((i, j, k))
+
+    def init_assigned_turn_vol(self):
+        for t in self.turns():
+            t.assigned_volume = t.target_volume
+
+    def calc_link_imbalance(self):
+        for link in self.links():
+            vol_in = 0
+            vol_out = 0
+            for (a, b, c) in link.turns_in:
+                vol_in += self.turn(a, b, c).assigned_volume
+            
+            for (d, e, f) in link.turns_out:
+                vol_out += self.turn(d, e, f).assigned_volume
+            
+            link.imbalance = vol_out - vol_in
 
     def init_turns(self) -> None:
-        """Initialize all turns within the network."""
+        """Initialize all turns within the network.
+        
+        TODO: Thoughts on u-turns:
+
+        Given network:
+        1 ----- 2 ------- 3 -------- 4
+
+        Add link (1, 2)
+        2 has up neighbor 1
+
+        Add link (2, 1)
+        1 has up neighbor 2
+
+        turn (2, 1, 2)
+              i  j  k
+            
+        if node(j) has len(up_neighbor) == 1 and len(dn_neighbor) == 1:
+            # lengths provide clude that link is potentially at the end of the 
+            # network, but could be mid-network
+            if up_neighbor == i and dn_neighbor == k:
+                # checking node id's confirms at edge of network.
+                Link is at edge of network.
+        """
+        def check_deadend_uturn(i, j, k) -> bool:
+            end_node = self.node(j)
+            if (len(end_node.up_neighbors) == 1) and (len(end_node.neighbors) == 1):
+                if (end_node.up_neighbors[0] == i) and (end_node.up_neighbors[0] == k):
+                    return True
+            return False
 
         for i, node1 in self._graph.items():
             for j, _ in node1.neighbors.items():
                 for k, _ in self._graph[j].neighbors.items():
+                    if check_deadend_uturn(i, j, k):
+                        continue
                     self._turns[(i, j, k)] = TurnData(key=(i, j, k),
                                                      name=f'{i}_{j}_{k}',
                                                      seed_volume=0,

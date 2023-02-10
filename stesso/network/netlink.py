@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 @dataclass(slots=True)
 class NetLinkData():
@@ -31,3 +31,6 @@ class NetLinkData():
     assigned_volume: float = 0
     seed_volume: float = 0
     geh: float = 0
+    imbalance: float = 0
+    turns_in: list[tuple[int, int, int]] = field(default_factory=list)
+    turns_out: list[tuple[int, int, int]] = field(default_factory=list)
