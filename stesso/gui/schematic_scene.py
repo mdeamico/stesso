@@ -8,6 +8,9 @@ from .approach_label import ApproachLabel
 from .approach_text import LabelText
 from .approach_tmhint import TMHint
 
+from .link_label import LinkLabel
+from .textinfo import TextInfo
+
 if TYPE_CHECKING:
     import PySide2.QtWidgets    
 
@@ -81,7 +84,8 @@ class SchematicScene(QGraphicsScene):
         nodes: list[NodeData], 
         links: list[LinkData], 
         node_label_info: list[NodeApproachLabelData],
-        get_turn_text_fn: Callable[[tuple[int, int, int], str], str]) -> None:
+        get_turn_text_fn: Callable[[tuple[int, int, int], str], str],
+        get_link_text_fn: Callable) -> None:
         """Transfer network node and link data from the Model to the SchematicScene. 
 
         Parameters
@@ -99,10 +103,44 @@ class SchematicScene(QGraphicsScene):
         for node in nodes:
             self.addItem(NodeItem(node.x, node.y, node.name))
         
+
+        # Data to show in Link Labels
+        link_info_target_volume = TextInfo(
+            editable=True,
+            InfoType='target_volume',
+            get_text_fn=lambda link_key: get_link_text_fn(link_key, 'target_volume'),
+            prefix="",
+            postfix=""
+        )
+
+        link_info_assigned_volume = TextInfo(
+            editable=True,
+            InfoType='assigned_volume',
+            get_text_fn=lambda link_key: get_link_text_fn(link_key, 'assigned_volume'),
+            prefix="<",
+            postfix=">"
+        )
+
+        link_info_imbalance = TextInfo(
+            editable=False,
+            InfoType='imbalance',
+            get_text_fn=lambda link_key: get_link_text_fn(link_key, 'imbalance'),
+            prefix="[",
+            postfix="]"
+        )
+
+
+        link_text_info_grid = [[link_info_imbalance, link_info_target_volume, link_info_assigned_volume]]
+
         for link in links:
             new_link_item = LinkItem(key=link.key, pts=link.shape_points)
             self.links[link.key] = new_link_item
             self.addItem(new_link_item)
+
+            # Add link labels
+            new_link_label = LinkLabel(new_link_item, link_text_info_grid)
+            self.addItem(new_link_label)
+            new_link_label.setPos(new_link_label.get_offset())
 
         self.get_turn_text_fn = get_turn_text_fn
 

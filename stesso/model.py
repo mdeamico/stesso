@@ -83,6 +83,10 @@ class Model():
 
         if turns_file is not None:
             net_read.import_turns(turns_file, self.net)
+            
+            # TODO: is this the best spot to make these function calls?
+            self.net.init_assigned_turn_vol()
+            self.net.calc_link_imbalance()
 
         return True
 
@@ -91,6 +95,8 @@ class Model():
             return
 
         balancer.balance_volumes(self.net)
+        # TODO: Calculate imbalance here, or within balance_volumes() ?
+        self.net.calc_link_imbalance()
 
     def get_nodes(self) -> list['NetNode']:
         """Return a list of nodes in the network."""
@@ -121,6 +127,24 @@ class Model():
                 text = "NA"
         
         return text
+
+    def get_link_text(self, link_key: tuple[int, int], data_name: str) -> str:
+        link = self.net.link(*link_key)
+
+        match data_name:
+            case "geh":
+                text = str(link.geh)
+            case "target_volume": 
+                text = f'{link.target_volume:.0f}'
+            case "assigned_volume": 
+                text = f'{link.assigned_volume:.0f}'
+            case "imbalance": 
+                text = f'{link.imbalance:.0f}'
+            case _:
+                text = "NA"
+        
+        return text
+
 
     def set_turn_volume(self, turn_key: tuple[int, int, int], volume: int) -> None:
         turn = self.net.turn(*turn_key)
