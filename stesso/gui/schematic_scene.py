@@ -75,6 +75,7 @@ class SchematicScene(QGraphicsScene):
         self.links: dict[tuple[int, int], LinkItem] = {}
         self.get_turn_text_fn: Callable[[tuple[int, int, int], str], str] = None
         self.approach_labels: list[ApproachLabel] = []
+        self.link_labels: list[LinkLabel] = []
         self.tm_hints: dict[tuple[int, int, int], TMHint] = {}
         self.tm_selection_set = set([])
         self.tm_text_items: dict[tuple[int, int, int], LabelText] = {}
@@ -141,6 +142,7 @@ class SchematicScene(QGraphicsScene):
             new_link_label = LinkLabel(new_link_item, link_text_info_grid)
             self.addItem(new_link_label)
             new_link_label.setPos(new_link_label.get_offset())
+            self.link_labels.append(new_link_label)
 
         self.get_turn_text_fn = get_turn_text_fn
 
@@ -180,6 +182,10 @@ class SchematicScene(QGraphicsScene):
     
     def update_approach_labels(self) -> None:
         for lbl in self.approach_labels:
+            lbl.update_text()
+
+    def update_link_labels(self) -> None:
+        for lbl in self.link_labels:
             lbl.update_text()
 
     def clear_tm_selection(self):

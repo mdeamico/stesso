@@ -149,4 +149,5 @@ class MainWindow(QMainWindow):
     def balance_volumes(self):
         self.model.balance_volumes()
         self.schematic_scene.update_approach_labels()
+        self.schematic_scene.update_link_labels()
 

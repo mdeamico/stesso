@@ -142,12 +142,17 @@ class Network():
         for link in self.links():
             vol_in = 0
             vol_out = 0
+
+            if (len(link.turns_in) == 0) or (len(link.turns_out) == 0):
+                link.imbalance == 0
+                continue
+
             for (a, b, c) in link.turns_in:
                 vol_in += self.turn(a, b, c).assigned_volume
             
             for (d, e, f) in link.turns_out:
                 vol_out += self.turn(d, e, f).assigned_volume
-            
+                        
             link.imbalance = vol_out - vol_in
 
     def init_turns(self) -> None:
