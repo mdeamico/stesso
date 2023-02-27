@@ -3,7 +3,7 @@
 
 import os
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from network import net_read, net_write
 from balancer import balancer
@@ -112,46 +112,28 @@ class Model():
         
         return list(self.net.links())
 
-    def get_turn_text(self, turn_key: tuple[int, int, int], data_name: str) -> str:
-        """Return data to display in turning movement labels."""
-        turn = self.net.turn(*turn_key)
-        
-        match data_name:
-            case "geh":
-                text = str(turn.geh)
-            case "target_volume": 
-                text = f'{turn.target_volume:.0f}'
-            case "assigned_volume": 
-                text = f'{turn.assigned_volume:.0f}'
-            case _:
-                text = "NA"
-        
-        return text
+    def get_turn_data(self, turn_key: tuple[int, int, int], data_name: str) -> Any:
+        turn = self.net.turn(*turn_key)        
+        return getattr(turn, data_name, "NA")
 
-    def get_link_text(self, link_key: tuple[int, int], data_name: str) -> str:
+
+    def get_link_data(self, link_key: tuple[int, int], data_name: str) -> Any:
         link = self.net.link(*link_key)
-
-        match data_name:
-            case "geh":
-                text = str(link.geh)
-            case "target_volume": 
-                text = f'{link.target_volume:.0f}'
-            case "assigned_volume": 
-                text = f'{link.assigned_volume:.0f}'
-            case "imbalance": 
-                text = f'{link.imbalance:.0f}'
-            case _:
-                text = "NA"
-        
-        return text
+        return getattr(link, data_name, "NA")
 
 
-    def set_turn_volume(self, turn_key: tuple[int, int, int], volume: int) -> None:
+    def set_link_target_volume(self, key: tuple, data_name, volume: int) -> None:
+        link = self.net.link(*key)
+        link.target_volume = volume
+        print(f"set link target {key}, {volume}")
+        # TODO: what else needs to get updated? GEH?
+
+    def set_turn_volume(self, turn_key: tuple[int, int, int], data_name, volume: int) -> None:
         turn = self.net.turn(*turn_key)
         turn.assigned_volume = volume
         # TODO: what else needs to get updated? GEH?
 
-    def get_nodes_to_label(self):
+    def get_nodes_for_approach_labeling(self):
         """Return data needed to label nodes that have more than one upstream or 
         downstream neighbor.
         """
