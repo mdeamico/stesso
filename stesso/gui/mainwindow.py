@@ -11,12 +11,14 @@ from gui import schematic_scene
 from gui.dialog_open import DialogOpen
 from gui.dialog_export import DialogExport
 from gui.dialog_vol_input import DialogVolInput
-
+from gui import label_props
 
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from ..model import Model
+    from gui.label_text import LabelText
+    
 
 class MainWindow(QMainWindow):
     """Main window presented to the user when the program first starts."""
@@ -28,12 +30,12 @@ class MainWindow(QMainWindow):
         self.ui.statusbar.showMessage("Hello from Status Bar!", 10000)
 
         # Connect MainWindow view/controller to model
-        self.model = model
+        self.model: 'Model' = model
 
         # Volume Input Dialog
         self.input_dialog = DialogVolInput(self)
         self.input_dialog.ui.buttonBox.button(QDialogButtonBox.Ok).clicked.connect(self.set_text)
-        self.input_dialog.ui.buttonBox.button(QDialogButtonBox.Cancel).clicked.connect(self.clear_tm_selection)
+        self.input_dialog.ui.buttonBox.button(QDialogButtonBox.Cancel).clicked.connect(self.clear_label_selection)
 
         # Dialog Open
         self.dialog_open = DialogOpen()
@@ -51,7 +53,7 @@ class MainWindow(QMainWindow):
     #     self.ui.pbShowExportDialog.setEnabled(False)
 
         # Setup graphics view
-        self.schematic_scene = schematic_scene.SchematicScene()
+        self.schematic_scene: schematic_scene.SchematicScene = schematic_scene.SchematicScene()
         self.ui.gvSchematic.setScene(self.schematic_scene)
         self.ui.gvSchematic.setRenderHints(QPainter.Antialiasing)
         
@@ -62,42 +64,47 @@ class MainWindow(QMainWindow):
         print(f"fm.averageCharWidth = {fm.averageCharWidth()}")
         print(f"fm.horizontalAdvance(1234) = {fm.horizontalAdvance('1234')}")
 
-    def clear_tm_selection(self):
-        self.schematic_scene.clear_tm_selection()
+    def clear_label_selection(self):
+        self.schematic_scene.clear_label_selection()
 
     def set_text(self):
         """Function for when OK is pressed on the text input dialog."""
-        print("OK!!!!")
         text_list = self.schematic_scene.get_selected_text()
-        print(text_list)
-
+        
         user_input = int(self.input_dialog.ui.lineEdit.text())
-        print(user_input)
 
-        for turn_key in text_list:
-            self.model.set_turn_volume(turn_key, user_input)
+        for obj in text_list:
+            if obj.obj_type == "LINK":
+                self.model.set_link_target_volume(obj.key, obj.props.data_name, user_input)
+            elif obj.obj_type == "TURN":
+                self.model.set_turn_volume(obj.key, obj.props.data_name, user_input)
         
+        print(f"set_text() called: text_list: {text_list} user_input: {user_input}")
         self.schematic_scene.update_approach_labels()
-        self.clear_tm_selection()
+        self.schematic_scene.update_link_labels()
+        self.clear_label_selection()
 
 
-    def show_input_dialog_fn(self, key, selected) -> None:
-        print(f"from main window {key} {selected}")
+    def show_input_dialog(self, key: tuple, selected: bool, label_props: 'label_props.LabelProps', obj_type: str, label: 'LabelText') -> None:
         
-        # TODO: remove hard-coded "target_volume" and instead get text type via
-        # adding a parameter to the Signal and this function
-        target_volume = self.model.get_turn_text(key, "target_volume")
+        if label.obj_type == "LINK":
+            get_data_fn = self.model.get_link_data
+        elif label.obj_type == "TURN":
+            get_data_fn = self.model.get_turn_data
 
-        self.input_dialog.ui.lineEdit.setText(target_volume)
-        self.input_dialog.ui.lineEdit.setPlaceholderText(target_volume)
-        self.input_dialog.ui.lineEdit.selectAll()
+        text = label_props.formatted(get_data_fn(label.key, label.props.data_name))
+
+        self.input_dialog.ui.lineEdit.setText(text)
+        self.input_dialog.ui.lineEdit.setPlaceholderText(text)
         
         if self.input_dialog.isVisible():
             self.input_dialog.raise_()
             self.input_dialog.activateWindow()
-            self.input_dialog.ui.lineEdit.setFocus() 
         else:
             self.input_dialog.show()
+
+        self.input_dialog.ui.lineEdit.setFocus() 
+        self.input_dialog.ui.lineEdit.selectAll()
         
     def show_dialog_open(self) -> None:
         self.dialog_open.store_data()
@@ -120,13 +127,21 @@ class MainWindow(QMainWindow):
             print("Loading not successful")
             return
         
-        self.schematic_scene.load_network(self.model.get_nodes(), 
-                                          self.model.get_links(),
-                                          self.model.get_nodes_to_label(),
-                                          self.model.get_turn_text,
-                                          self.model.get_link_text)
+        self.schematic_scene.load_network(
+            nodes=self.model.get_nodes(), 
+            links=self.model.get_links())
 
-        self.schematic_scene.connect_txt_signals(self.show_input_dialog_fn)
+        self.link_label_props = [[label_props.imbalance(), label_props.target_volume(True), label_props.assigned_volume()]]
+        self.node_label_props = [[label_props.target_volume()], [label_props.assigned_volume(True)]]
+
+        self.schematic_scene.init_labels(
+            approaches_to_label=self.model.get_nodes_for_approach_labeling(),
+            approach_label_props=self.node_label_props,
+            get_node_text_fn=self.model.get_turn_data,
+            link_label_props=self.link_label_props,
+            get_link_text_fn=self.model.get_link_data)
+        
+        self.schematic_scene.connect_txt_signals(self.show_input_dialog)
 
         # Set scene rectangle to something larger than the network.
         # This helps with panning & zooming near the edges of the network.

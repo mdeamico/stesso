@@ -1,32 +1,37 @@
 from PySide2.QtWidgets import QGraphicsItem
-from PySide2.QtGui import QFont, QBrush, QPen, QColor
+from PySide2.QtGui import QFont
 from PySide2.QtCore import Qt, QRectF, QObject, Signal
 
-from .textinfo import TextInfo
+from .label_props import LabelProps
 
 SCALE_VALUE = 22
 AVG_CHAR_WIDTH = 10
 
-class Communicate(QObject):
-    is_selected = Signal(tuple, bool)
 
+class LabelText(QGraphicsItem):
 
-
-class LinkLabelText(QGraphicsItem):
-
-    def __init__(self, parent, text, flip_text: bool, key: tuple, text_info: TextInfo) -> None:
+    def __init__(self, 
+                 parent, 
+                 text: str, 
+                 flip_text: bool, 
+                 key: tuple, 
+                 properties: LabelProps, 
+                 obj_type: str) -> None:
         super().__init__(parent)
         
         self.text = text
         self.flip = flip_text
 
         self.key = key
-        self.info = text_info
+        self.props = properties
+        self.obj_type = obj_type
         
         self.selected = False
         self.signals = Communicate()
+
+        self.font = QFont("consolas", 14)
         
-        self.setToolTip(f"{self.info.InfoType}: {self.text}")
+        self.setToolTip(f"{self.props.data_name}: {self.text}")
 
     def boundingRect(self):
         return QRectF(0, 0, len(self.text) * AVG_CHAR_WIDTH, SCALE_VALUE)
@@ -43,31 +48,27 @@ class LinkLabelText(QGraphicsItem):
             painter.scale(1, -1)
         
         if self.selected:
-            # brush = QBrush(QColor(240, 240, 0))
-            # painter.setBrush(brush)
             painter.drawRect(self.boundingRect())
             painter.drawEllipse(0, 0, 3, 3)
 
-        pen = QPen(QColor(255, 0, 0))
-        painter.setPen(pen)
-
-        font = QFont("consolas", 14)
-        painter.setFont(font)
-
+        painter.setFont(self.font)
         painter.drawText(0, 0, text_width, SCALE_VALUE, Qt.AlignRight, self.text)
 
     def mousePressEvent(self, event) -> None:
-        print(f"link text mouse press: {self.text} editable? {self.info.editable}")
-        if not self.info.editable:
+        print(f"{self.obj_type} mouse press: {self.text} editable? {self.props.editable}")
+        if not self.props.editable:
             return
             
         self.selected = not self.selected
-        self.signals.is_selected.emit(self.key, self.selected)
+        self.signals.click.emit(self.key, self.selected, self.props, self.obj_type, self)
         self.update()
     
-    def update_message(self):
-        new_text = self.info.get_text_fn(self.key)
-        self.text = f"{self.info.prefix}{new_text}{self.info.postfix}"
-        self.setToolTip(f"{self.info.InfoType}: {self.text}")
+    def update_text(self, new_data):
+        self.text = f'{self.props.prefix}{self.props.formatted(new_data)}{self.props.postfix}'
+        self.setToolTip(f"{self.props.data_name}: {self.text}")
         self.update()
         return self.text
+    
+
+class Communicate(QObject):
+    click = Signal(tuple, bool, LabelProps, str, LabelText)
