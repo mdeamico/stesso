@@ -42,7 +42,7 @@ class MainWindow(QMainWindow):
         self.dialog_open.ui.buttonBox.button(QDialogButtonBox.Ok).clicked.connect(self.load)
 
         # Dialog Export
-        self.dialog_export = DialogExport(cb_export_turns=self.model.export_turns)
+        self.dialog_export = DialogExport(cb_export=self.export)
 
         # Connect push buttons to slot functions
         self.ui.pbShowDialogOpen.clicked.connect(self.show_dialog_open)
@@ -166,3 +166,7 @@ class MainWindow(QMainWindow):
         self.schematic_scene.update_approach_labels()
         self.schematic_scene.update_link_labels()
 
+
+    def export(self, export_folder):
+        self.model.export_turns(export_folder)
+        self.model.export_links(export_folder)

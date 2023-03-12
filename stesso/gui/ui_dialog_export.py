@@ -17,7 +17,7 @@ class Ui_Dialog(object):
     def setupUi(self, Dialog):
         if not Dialog.objectName():
             Dialog.setObjectName(u"Dialog")
-        Dialog.resize(575, 161)
+        Dialog.resize(575, 103)
         self.verticalLayout_2 = QVBoxLayout(Dialog)
         self.verticalLayout_2.setObjectName(u"verticalLayout_2")
         self.formLayout = QFormLayout()
@@ -38,10 +38,10 @@ class Ui_Dialog(object):
 
         self.verticalLayout = QVBoxLayout()
         self.verticalLayout.setObjectName(u"verticalLayout")
-        self.pbExportTurns = QPushButton(Dialog)
-        self.pbExportTurns.setObjectName(u"pbExportTurns")
+        self.pbExport = QPushButton(Dialog)
+        self.pbExport.setObjectName(u"pbExport")
 
-        self.verticalLayout.addWidget(self.pbExportTurns)
+        self.verticalLayout.addWidget(self.pbExport)
 
 
         self.verticalLayout_2.addLayout(self.verticalLayout)
@@ -66,8 +66,8 @@ class Ui_Dialog(object):
         Dialog.setWindowTitle(QCoreApplication.translate("Dialog", u"Export", None))
         self.pbExportFolder.setText(QCoreApplication.translate("Dialog", u"Export Folder", None))
 #if QT_CONFIG(tooltip)
-        self.pbExportTurns.setToolTip("")
+        self.pbExport.setToolTip("")
 #endif // QT_CONFIG(tooltip)
-        self.pbExportTurns.setText(QCoreApplication.translate("Dialog", u"Export Turning Volumes", None))
+        self.pbExport.setText(QCoreApplication.translate("Dialog", u"Export Links and Turns", None))
     # retranslateUi
 

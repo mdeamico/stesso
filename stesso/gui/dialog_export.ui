@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>575</width>
-    <height>161</height>
+    <height>103</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -34,12 +34,12 @@
    <item>
     <layout class="QVBoxLayout" name="verticalLayout">
      <item>
-      <widget class="QPushButton" name="pbExportTurns">
+      <widget class="QPushButton" name="pbExport">
        <property name="toolTip">
         <string/>
        </property>
        <property name="text">
-        <string>Export Turning Volumes</string>
+        <string>Export Links and Turns</string>
        </property>
       </widget>
      </item>
