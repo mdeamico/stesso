@@ -63,7 +63,7 @@ def create_network(node_file: str, link_file: str) -> Network:
     link_handler[link_file_ext](new_network, link_file)
 
     new_network.init_turns()
-    new_network.assign_link_flows()
+    new_network.init_link_flow_lists()
     new_network.init_routes()
     new_network.set_coord_scale()
     

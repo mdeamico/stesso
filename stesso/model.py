@@ -94,8 +94,14 @@ class Model():
         if self.net is None:
             return
 
-        balancer.balance_volumes(self.net)
-        # TODO: Calculate imbalance here, or within balance_volumes() ?
+        result = balancer.balance_volumes(self.net)
+
+        # Set turn volume based on balancer results
+        for (i, j, k), col in result.matrix_cols_turns.items():
+            self.net.turn(i, j, k).assigned_volume = result.balancer_est[col]
+        
+        # Set link volume based on turn volumes
+        self.net.assign_link_volume_from_turns()
         self.net.calc_link_imbalance()
 
     def get_nodes(self) -> list['NetNode']:

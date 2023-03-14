@@ -125,7 +125,7 @@ class Network():
             else:
                 yield turn
 
-    def assign_link_flows(self):
+    def init_link_flow_lists(self):
         """Assign inbound and outbound turns for each link."""
         for (i, j, k), _ in self.turns(True):
             # if i == k:
@@ -154,6 +154,24 @@ class Network():
                 vol_out += self.turn(d, e, f).assigned_volume
                         
             link.imbalance = vol_out - vol_in
+
+    def assign_link_volume_from_turns(self) -> None:
+        """Calculate the link volume based on outbound turning volumes.
+        
+        If the link only has inbound turns, then they will be used to compute
+        the link volume.
+        """
+        for link in self.links():
+            link_volume = 0
+            
+            if len(link.turns_out) == 0:
+                for (a, b, c) in link.turns_in:
+                    link_volume += self.turn(a, b, c).assigned_volume
+            else:
+                for (d, e, f) in link.turns_out:
+                    link_volume += self.turn(d, e, f).assigned_volume
+            
+            link.assigned_volume = link_volume
 
     def init_turns(self) -> None:
         """Initialize all turns within the network.

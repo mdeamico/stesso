@@ -40,7 +40,7 @@ class MainTest(unittest.TestCase):
         self.window.dialog_open.ui.leTurns.setText(os.path.join(net_folder, "turn targets.csv"))
         QTest.mouseClick(self.window.dialog_open.ui.buttonBox.button(QDialogButtonBox.Ok), Qt.LeftButton)
         
-        self.model.balance_volumes()
+        QTest.mouseClick(self.window.ui.pbBalance, Qt.LeftButton)
         
         QTest.mouseClick(self.window.ui.pbShowExportDialog, Qt.LeftButton)
         self.window.dialog_export.ui.leExportFolder.setText(export_folder)
