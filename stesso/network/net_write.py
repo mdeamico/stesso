@@ -33,14 +33,44 @@ def export_turns(net: 'Network', output_folder=None) -> None:
 
     with open(output_file, 'w', newline='') as f:
         writer = csv.writer(f)
-        writer.writerow(["a_node", "b_node", "c_node"])
+        writer.writerow(["a_node", "b_node", "c_node", "asn_vol"])
 
         for (i, j, k), _ in net.turns(True):
             A = net.node(i).name
             B = net.node(j).name
             C = net.node(k).name
-            writer.writerow([A, B, C])
+            asn_vol = round(net.turn(i, j, k).assigned_volume, 2)
+            writer.writerow([A, B, C, asn_vol])
 
+
+def export_links(net: 'Network', output_folder=None) -> None:
+    """Exports network links to a csv file.
+    
+    Parameters
+    ----------
+    net : Network
+        Network cotaining turns to export.
+    output_folder : str, optional
+        Folder to export turn file, by default None indicates the current working
+        directory as returned by os.getcwd().
+    """
+    if output_folder is None:
+        output_folder = os.getcwd()
+
+    output_file = os.path.join(output_folder, 'exported_links.csv')
+
+    print('Output turns to: ', output_file)
+
+    with open(output_file, 'w', newline='') as f:
+        writer = csv.writer(f)
+        writer.writerow(["a_node", "b_node", "asn_vol", "imbal"])
+
+        for (i, j), _ in net.links(True):
+            A = net.node(i).name
+            B = net.node(j).name
+            asn_vol = round(net.link(i, j).assigned_volume, 2)
+            imbal = round(net.link(i, j).imbalance, 2)
+            writer.writerow([A, B, asn_vol, imbal])
 
 
 def export_node_sequences(net: 'Network', output_folder=None) -> None:

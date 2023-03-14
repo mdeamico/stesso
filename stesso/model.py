@@ -176,8 +176,12 @@ class Model():
                 
         return nodes_to_label
 
-    def export_turns(self, export_folder):
-        print(f"TODO: Export Turns to this folder: {export_folder}")
+    def export_turns(self, export_folder=None):
+        net_write.export_turns(self.net, export_folder)
+
+    def export_links(self, export_folder=None):
+        net_write.export_links(self.net, export_folder)        
+
 
 def _clean_file_path(file_path: str) -> str:
     """Check if a file exists and return a valid path, else None."""
