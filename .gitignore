@@ -1,6 +1,7 @@
 # User folders
 local_tools/
 tests/exports/
+~$*.xls*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
