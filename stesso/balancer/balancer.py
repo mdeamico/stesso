@@ -1,12 +1,22 @@
 import numpy as np
 from scipy.optimize import lsq_linear as scipy_lsq_linear
 
+from dataclasses import dataclass
+
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from ..network.net import Network
 
-def balance_volumes(net: 'Network') -> None:
+
+@dataclass
+class BalancerResult:
+    matrix_cols_turns: dict
+    matrix_cols_links: dict
+    balancer_est: list
+
+
+def balance_volumes(net: 'Network') -> BalancerResult:
     """Balance link and turn volumes in the network.
     
     Uses a linear least squares approach to volume balancing. Solves the matrix
@@ -159,23 +169,5 @@ def balance_volumes(net: 'Network') -> None:
     result = scipy_lsq_linear(np.dot(W, A), np.dot(W, B), bounds=(lbounds, ubounds))
     final_mat = result.x
 
-    # Show result
-    np.set_printoptions(linewidth=200)
-    print(result)
-
-    # ----------------------------------------
-    # Assign result to network link & turns
-    # ----------------------------------------
-    for k, v in matrix_cols_links.items():
-        net.link(k[0], k[1]).assigned_volume = final_mat[v]
-            
-    for k, v in matrix_cols_turns.items():
-        net._turns[(k[0], k[1], k[2])].assigned_volume = final_mat[v]
-
-    for k, t in net.turns(True):
-        print(f"{t.name}: {t.assigned_volume}")
-
-    for (i, j), l in net.links(True):
-        print(f"({net.node(i).name}, {net.node(j).name}): {l.assigned_volume}")
-
-    print("done")
+    print("Done balancing.")
+    return BalancerResult(matrix_cols_turns, matrix_cols_links, final_mat)
