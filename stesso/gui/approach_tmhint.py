@@ -4,7 +4,7 @@ from PySide2.QtGui import QPen, QPolygonF
 from PySide2.QtCore import Qt, QLineF
 
 
-SCALE_VALUE = 22
+
 
 
 class TMHint(QGraphicsItem):

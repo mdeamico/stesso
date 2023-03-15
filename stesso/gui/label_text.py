@@ -1,12 +1,10 @@
 from PySide2.QtWidgets import QGraphicsItem
-from PySide2.QtGui import QFont
-from PySide2.QtCore import Qt, QRectF, QObject, Signal
+from PySide2.QtGui import QFont, QFontMetrics, QPainter, QPixmap
+from PySide2.QtCore import Qt, QRectF, QObject, Signal, QPoint
 
 from .label_props import LabelProps
 
-SCALE_VALUE = 22
-AVG_CHAR_WIDTH = 10
-
+from gui.settings import GUIConfig
 
 class LabelText(QGraphicsItem):
 
@@ -29,30 +27,68 @@ class LabelText(QGraphicsItem):
         self.selected = False
         self.signals = Communicate()
 
-        self.font = QFont("consolas", 14)
+        self.font = QFont(GUIConfig.FONT_NAME, GUIConfig.FONT_SIZE)
+        self._fm = QFontMetrics(self.font)
+        self._fm_rect_top = self._fm.boundingRect("X").top()
         
         self.setToolTip(f"{self.props.data_name}: {self.text}")
 
+        self.antialias_scale = 2
+        self.text_pixmap = self._update_text_pixmap()
+        self.lod = 1
+
+
+    def _update_text_pixmap(self):
+        
+        width_px = (len(self.text) * GUIConfig.CHAR_WIDTH) * self.antialias_scale
+        height_px = GUIConfig.FONT_HEIGHT * self.antialias_scale
+
+        canvas = QPixmap(width_px, height_px)
+        canvas.fill(Qt.transparent)
+        painter = QPainter(canvas)
+
+        font = QFont(GUIConfig.FONT_NAME, GUIConfig.FONT_SIZE * self.antialias_scale)
+        painter.setFont(font)
+        painter.setPen(Qt.black)
+        painter.translate(0, -self._fm_rect_top * self.antialias_scale)
+        # painter.scale(1.0, -1.0)
+        
+        painter.drawText(0, 0, self.text)
+
+        return canvas
+
+
+
     def boundingRect(self):
-        return QRectF(0, 0, len(self.text) * AVG_CHAR_WIDTH, SCALE_VALUE)
+        return QRectF(0, 
+                      0, 
+                      len(self.text) * GUIConfig.CHAR_WIDTH / self.lod, 
+                      GUIConfig.FONT_HEIGHT / self.lod)
 
     def paint(self, painter, option, widget) -> None:
+        self.lod = option.levelOfDetailFromTransform(painter.worldTransform())
 
-        text_width = len(self.text) * AVG_CHAR_WIDTH
+        text_width = len(self.text) * GUIConfig.CHAR_WIDTH / self.lod
         
         if self.flip:
             painter.translate(text_width, 0)
             painter.scale(-1, 1)
         else:
-            painter.translate(0, SCALE_VALUE)
+            painter.translate(0, GUIConfig.FONT_HEIGHT / self.lod)
             painter.scale(1, -1)
         
         if self.selected:
             painter.drawRect(self.boundingRect())
             painter.drawEllipse(0, 0, 3, 3)
-
-        painter.setFont(self.font)
-        painter.drawText(0, 0, text_width, SCALE_VALUE, Qt.AlignRight, self.text)
+        
+        scale_mult = (1 / self.antialias_scale) / self.lod
+        painter.scale(scale_mult, scale_mult)
+        
+        painter.drawPixmap(QPoint(0, 0), self.text_pixmap)
+        
+        # painter.setBrush(Qt.black)
+        # painter.drawEllipse(QPoint(0, 0), 8, 8)
+           
 
     def mousePressEvent(self, event) -> None:
         print(f"{self.obj_type} mouse press: {self.text} editable? {self.props.editable}")
@@ -66,6 +102,7 @@ class LabelText(QGraphicsItem):
     def update_text(self, new_data):
         self.text = f'{self.props.prefix}{self.props.formatted(new_data)}{self.props.postfix}'
         self.setToolTip(f"{self.props.data_name}: {self.text}")
+        self.text_pixmap = self._update_text_pixmap()
         self.update()
         return self.text
     

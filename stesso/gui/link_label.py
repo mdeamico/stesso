@@ -8,9 +8,9 @@ from typing import Protocol, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from label_props import LabelProps
+    from PySide2.QtWidgets import QGraphicsSceneMouseEvent
 
-SCALE_VALUE = 22
-CHAR_WIDTH = 10
+from gui.settings import GUIConfig
 
 
 class LinkItemData(Protocol):
@@ -33,7 +33,10 @@ class LinkLabel(QGraphicsItem):
         self.link = self_link
         self.label_props = label_props
         self.get_model_data = get_model_data_fn
-        
+        self.lod = 1
+        self.mouse_down = False
+        self.offset_length = 20
+
         self.line = \
                QLineF(self.link.pts[0][0], self.link.pts[0][1],
                       self.link.pts[1][0], self.link.pts[1][1])
@@ -73,10 +76,11 @@ class LinkLabel(QGraphicsItem):
                 
                 self.text_grid[col].append(new_text)
 
-        self.height = SCALE_VALUE * self.n_rows
+        self.height = GUIConfig.FONT_HEIGHT * self.n_rows
         self.update_text()
         # self.setRotation(-self.angle)
         self.setFlag(QGraphicsItem.ItemIsMovable)
+        self.init_pos()
 
 
     def connect_txt_signals(self, show_dialog_fn, make_new_selection_fn):
@@ -106,46 +110,77 @@ class LinkLabel(QGraphicsItem):
         for col in range(self.n_cols):
             self.width += self.col_max_char[col]
 
-        self.width = (self.width + self.n_cols) * CHAR_WIDTH
+        self.width = (self.width + self.n_cols) * GUIConfig.CHAR_WIDTH
 
     def _reset_max_char(self):
         for i in range(len(self.col_max_char)):
             self.col_max_char[i] = 0
 
-    def _update_text_pos(self):        
+    def _update_text_pos(self, lod:float=1):       
         prev_col_x_pos = 0
 
         for col in range(self.n_cols):
             x_pos = prev_col_x_pos
             for row in range(self.n_rows):
                 label = self.text_grid[col][row]
-                text_len = len(label.text) * CHAR_WIDTH
-                txt_offset = self.col_max_char[col] * CHAR_WIDTH - text_len
+                text_len = len(label.text) * GUIConfig.CHAR_WIDTH
+                txt_offset = self.col_max_char[col] * GUIConfig.CHAR_WIDTH - text_len
                 
-                label.setPos(x_pos + txt_offset, row * SCALE_VALUE)
+                label.setPos((x_pos + txt_offset) / lod, row * GUIConfig.FONT_HEIGHT / lod)
 
-            prev_col_x_pos = x_pos + (self.col_max_char[col] * CHAR_WIDTH) + CHAR_WIDTH
+            prev_col_x_pos = x_pos + (self.col_max_char[col] * GUIConfig.CHAR_WIDTH) + GUIConfig.CHAR_WIDTH
 
-    def get_offset(self):
-        unit_normal = self.line.normalVector().unitVector()
+
+    def update_offset(self):
+        print(f"update_offset self.pos: {self.pos()}")
+        self.offset = QLineF(self.init_pt, self.pos())
+        if self.flip:
+            self.offset_length = self.offset.length() * self.lod
+        else:
+            # self.offset_length = (self.offset.length() + self.height) * self.lod
+            self.offset_length = (self.offset.length()) * self.lod
+
+    def init_pos(self):
+        self.offset: QLineF = self.line.normalVector().unitVector()
         
         center_pt = self.line.center()
         offset_pt = QPointF(center_pt.x() - self.line.p1().x(),
                             center_pt.y() - self.line.p1().y())
         
-        unit_normal.translate(offset_pt)
-
+        self.offset.translate(offset_pt)
+        
         if self.flip:
-            unit_normal.setLength(20)
+            self.offset.setLength(self.offset_length)
         else:
-            unit_normal.setLength(20 + self.height)
+            self.offset_length = (self.offset_length + self.height)
+            self.offset.setLength(self.offset_length)
+        
+        self.init_pt = self.offset.p1()
+        
+        self.setPos(self.offset.p2())
+        return self.offset.p2()
+    
+    def update_self_pos(self):
+        if self.flip:
+            new_len = self.offset_length / self.lod
+        else:
+            # new_len = (self.offset_length + self.height) / self.lod
+            new_len = (self.offset_length) / self.lod
 
-        return unit_normal.p2()
+        self.offset.setLength(new_len)
+        self.setPos(self.offset.p2())
 
     def boundingRect(self):
-        return QRectF(0, 0, self.width, self.height)
+        return QRectF(0, 
+                      0, 
+                      self.width / self.lod, 
+                      self.height / self.lod)
 
     def paint(self, painter, option, widget) -> None:
+        if not self.mouse_down:
+            self.update_self_pos()
+
+        self.lod = option.levelOfDetailFromTransform(painter.worldTransform())
         # # Draw Bounding Rect for debugging
         # brush = QBrush(QColor(240, 240, 0))
         # painter.setBrush(brush)
@@ -154,6 +189,22 @@ class LinkLabel(QGraphicsItem):
         else:
             pen = QPen(QColor(0, 255, 0))
         
+        self._update_text_pos(self.lod)
+        
+        pen.setCosmetic(True)
         painter.setPen(pen)
+        
         painter.drawRect(self.boundingRect())
-        painter.drawEllipse(0,0,3,3)
+        # painter.drawEllipse(0,0,3,3)
+
+    def mousePressEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:
+        self.mouse_down = True
+        print(f"Mouse Down self.pos: {self.pos()}")
+        return super().mousePressEvent(event)
+    
+    def mouseReleaseEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:
+        self.mouse_down = False
+        self.update_offset()
+
+        print(f"Mouse Up self.pos: {self.pos()}")
+        return super().mouseReleaseEvent(event)

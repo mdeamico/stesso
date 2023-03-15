@@ -4,8 +4,7 @@ from PySide2.QtWidgets import QGraphicsItem
 from PySide2.QtGui import QPen
 from PySide2.QtCore import Qt, QRectF, QLineF
 
-
-SCALE_VALUE = 22
+from gui.settings import GUIConfig
 
 
 class TMArrow(QGraphicsItem):
@@ -16,19 +15,22 @@ class TMArrow(QGraphicsItem):
         self.angle_rel = angle_rel
     
     def boundingRect(self):
-        return QRectF(0, 0, SCALE_VALUE, SCALE_VALUE)
+        return QRectF(0, 0, GUIConfig.FONT_HEIGHT, GUIConfig.FONT_HEIGHT)
     
     def paint(self, painter, option, widget) -> None:
+        lod = option.levelOfDetailFromTransform(painter.worldTransform())
+        painter.scale(1 / lod, 1 / lod)
+
         painter.drawRect(self.boundingRect())
         
-        line_in = QLineF(0, 0, SCALE_VALUE * 0.4, 0)
+        line_in = QLineF(0, 0, GUIConfig.FONT_HEIGHT * 0.4, 0)
         # Line_in always has zero angle because it is parallel to the approach,
         # so we don't need to call setAngle(). We only need to call translate()
-        line_in.translate(SCALE_VALUE / 2, SCALE_VALUE / 2)
+        line_in.translate(GUIConfig.FONT_HEIGHT / 2, GUIConfig.FONT_HEIGHT / 2)
         
-        line_out = QLineF(0, 0, SCALE_VALUE * 0.4, 0)
+        line_out = QLineF(0, 0, GUIConfig.FONT_HEIGHT * 0.4, 0)
         line_out.setAngle(self.angle_rel)
-        line_out.translate(SCALE_VALUE / 2, SCALE_VALUE / 2)
+        line_out.translate(GUIConfig.FONT_HEIGHT / 2, GUIConfig.FONT_HEIGHT / 2)
         
         painter.setPen(QPen(Qt.green, 3))
         painter.drawLine(line_in)

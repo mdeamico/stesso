@@ -13,6 +13,8 @@ from gui.dialog_export import DialogExport
 from gui.dialog_vol_input import DialogVolInput
 from gui import label_props
 
+from gui import settings
+
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -28,6 +30,8 @@ class MainWindow(QMainWindow):
         self.ui.setupUi(self)
 
         self.ui.statusbar.showMessage("Hello from Status Bar!", 10000)
+
+        settings.init()
 
         # Connect MainWindow view/controller to model
         self.model: 'Model' = model
@@ -56,13 +60,14 @@ class MainWindow(QMainWindow):
         self.schematic_scene: schematic_scene.SchematicScene = schematic_scene.SchematicScene()
         self.ui.gvSchematic.setScene(self.schematic_scene)
         self.ui.gvSchematic.setRenderHints(QPainter.Antialiasing)
+        self.ui.gvSchematic.setRenderHint(QPainter.SmoothPixmapTransform)
         
         # Experimenting with font properties
-        font = QFont("consolas", 14)
-        fm = QFontMetrics(font)
-        print(f"fm.height = {fm.height()}")
-        print(f"fm.averageCharWidth = {fm.averageCharWidth()}")
-        print(f"fm.horizontalAdvance(1234) = {fm.horizontalAdvance('1234')}")
+        # font = QFont("consolas", 8)
+        # fm = QFontMetrics(font)
+        # print(f"fm.height = {fm.height()} fm.capHeight = {fm.capHeight()}")
+        # print(f"fm.averageCharWidth = {fm.averageCharWidth()}")
+        # print(f"fm.horizontalAdvance(1234) = {fm.horizontalAdvance('1234')}")
 
     def clear_label_selection(self):
         self.schematic_scene.clear_label_selection()
