@@ -83,6 +83,8 @@ def balance_volumes(net: 'Network') -> BalancerResult:
             n_flow_eq += 1
         if len(link.turns_out) > 0:
             n_flow_eq += 1
+        if (len(link.turns_in) > 0) and (len(link.turns_out) > 0):
+            n_flow_eq += 1
 
     # Initialize A matrix with flow conservation equations.
     # Target volume equations are appended to A later.
@@ -110,6 +112,16 @@ def balance_volumes(net: 'Network') -> BalancerResult:
             update_matrix_a_flow_eq(link.turns_out, flow_eq_row, link_col)
             flow_eq_row += 1
 
+        if (len(link.turns_in) > 0) and (len(link.turns_out) > 0):
+            for t_in in link.turns_in:
+                turn_col = matrix_cols_turns[t_in]
+                A[flow_eq_row, turn_col] = 1                
+            
+            for t_out in link.turns_out:
+                turn_col = matrix_cols_turns[t_out]
+                A[flow_eq_row, turn_col] = -1
+
+            flow_eq_row += 1
 
     # ----------------------------------------------------------------
     # - Build B matrix in Ax = B equation, 
@@ -140,22 +152,27 @@ def balance_volumes(net: 'Network') -> BalancerResult:
         A = np.concatenate((A, new_eq), axis=0)
         B.append(target_volume)
 
-        lbounds[col] = target_volume * 0.85
+        tol = 0.5
+
+        lbounds[col] = target_volume * (1 - tol)
+        
         if target_volume == 0:
             ubounds[col] = 0.01
-            W.append(999999)
+            W.append(1)
         else:
-            ubounds[col] = target_volume * 1.15
-            W.append(1)   
+            ubounds[col] = target_volume * (1 + tol)
+            W.append(1)  
 
 
     for t, col in matrix_cols_turns.items():
         target_volume = net._turns[t].target_volume
+        if target_volume == -1:
+            continue
         update_abw_for_target_constraints(target_volume, col)
 
     for l, col in matrix_cols_links.items():
         target_volume = net.link(l[0], l[1]).target_volume
-        if target_volume == 0:
+        if target_volume == -1:
             continue
         update_abw_for_target_constraints(target_volume, col)
 

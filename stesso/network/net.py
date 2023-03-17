@@ -212,7 +212,7 @@ class Network():
                     self._turns[(i, j, k)] = TurnData(key=(i, j, k),
                                                      name=f'{i}_{j}_{k}',
                                                      seed_volume=0,
-                                                     target_volume=0,
+                                                     target_volume=-1,
                                                      assigned_volume=0,
                                                      geh=0)
 
