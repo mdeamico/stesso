@@ -118,7 +118,8 @@ class SchematicScene(QGraphicsScene):
         for _, link in self.links.items():
             new_link_label = LinkLabel(link, label_props, get_data_fn)
             self.addItem(new_link_label)
-            new_link_label.setPos(new_link_label.get_offset())
+            #new_link_label.setPos(new_link_label.get_offset())
+            # new_link_label.init_pos()
             self.link_labels.append(new_link_label)
 
     def _create_approach_labels(self, 
@@ -130,7 +131,6 @@ class SchematicScene(QGraphicsScene):
                 lbl = self._create_approach_label(node.key, approach, label_props, get_data_fn)
                 self.approach_labels.append(lbl)
                 self.addItem(lbl)
-                lbl.setPos(lbl.get_offset())
 
                 # Add Turn Hints
                 for (turn_key, t) in lbl.turns.items():
@@ -139,7 +139,7 @@ class SchematicScene(QGraphicsScene):
                     self.addItem(tm_hint)
 
                 # For Debug
-                self.addEllipse(lbl.pos().x(), lbl.pos().y(), 5, 5)
+                # self.addEllipse(lbl.pos().x(), lbl.pos().y(), 5, 5)
 
     def _create_approach_label(self, 
                                node_key: int, 

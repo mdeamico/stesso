@@ -1,5 +1,6 @@
 from PySide2.QtWidgets import QGraphicsItem
 from PySide2.QtCore import QRectF, QPointF, QLineF
+from PySide2.QtGui import QColor, QPen
 
 from .approach_tmarrow import TMArrow
 from .label_text import LabelText
@@ -8,10 +9,9 @@ from typing import Protocol, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from label_props import LabelProps
+    from PySide2.QtWidgets import QGraphicsSceneMouseEvent
 
-SCALE_VALUE = 22
-CHAR_WIDTH = 10
-TURN_ARROW_WIDTH = 22
+from gui.settings import GUIConfig
 
 
 class LinkItemData(Protocol):
@@ -37,6 +37,11 @@ class ApproachLabel(QGraphicsItem):
         self.outbound_links = outbound_links
         self.label_props = label_props
         self.get_model_data = get_model_data_fn
+        self.lod = 1
+        self.mouse_down = False
+        self.init_pt = QPointF(self.link.pts[1][0], 
+                                self.link.pts[1][1])
+        self.offset_length = 10
 
         self.text_grid: list[list[LabelText]] = []
 
@@ -83,10 +88,12 @@ class ApproachLabel(QGraphicsItem):
 
             key_k = outbound_link.key[1]
             self.turns[(key_i, key_j, key_k)] = {
+                'row': 0,
                 'angle_rel': angle_rel, 
                 'angle': outbound_line.angle(),
                 'approach_line': self.approach_line,
-                'outbound_line': outbound_line
+                'outbound_line': outbound_line,
+                'tm_arrow': None
                 }
 
         # Sort turns by angle relative to self
@@ -97,7 +104,8 @@ class ApproachLabel(QGraphicsItem):
             t['row'] = row
 
             new_tm_arrow = TMArrow(self, self.angle, t['angle'], t['angle_rel'])
-            new_tm_arrow.setPos(0, row * SCALE_VALUE)
+            new_tm_arrow.setPos(0, row * GUIConfig.FONT_HEIGHT)
+            t['tm_arrow'] = new_tm_arrow
 
             for col in range(self.n_cols):
                 text_props = self.label_props[col][0]
@@ -112,9 +120,10 @@ class ApproachLabel(QGraphicsItem):
                 self.text_grid[col].append(new_text)
 
         self.update_text()
-        self.height = SCALE_VALUE * self.n_rows
+        self.height = GUIConfig.FONT_HEIGHT * self.n_rows
         self.width = 120
         self.setRotation(-self.angle)
+        self.init_pos()
 
     def connect_txt_signals(self, show_dialog_fn, make_new_selection_fn):
         for col in range(self.n_cols):
@@ -143,44 +152,80 @@ class ApproachLabel(QGraphicsItem):
         for col in range(self.n_cols):
             self.width += self.col_max_char[col]
 
-        self.width = (self.width + self.n_cols) * CHAR_WIDTH + TURN_ARROW_WIDTH
+        self.width = (self.width + self.n_cols) * GUIConfig.CHAR_WIDTH + GUIConfig.FONT_HEIGHT
 
     def _reset_max_char(self):
         for i in range(len(self.col_max_char)):
             self.col_max_char[i] = 0
 
-    def _update_text_pos(self):
-        prev_col_x_pos = TURN_ARROW_WIDTH
+    def _update_text_pos(self, lod:float=1):
+        prev_col_x_pos = GUIConfig.FONT_HEIGHT
 
         if self.flip:
-            prev_col_x_pos = SCALE_VALUE
+            prev_col_x_pos = GUIConfig.FONT_HEIGHT
 
         for col in range(self.n_cols):
-            x_pos = prev_col_x_pos + CHAR_WIDTH
+            x_pos = prev_col_x_pos
             for row in range(self.n_rows):
                 txt = self.text_grid[col][row]
                 if self.flip:
                     txt_offset = 0
                 else:
-                    txt_offset = (self.col_max_char[col] * CHAR_WIDTH) - (len(txt.text) * CHAR_WIDTH)
+                    txt_offset = (self.col_max_char[col] * GUIConfig.CHAR_WIDTH) - (len(txt.text) * GUIConfig.CHAR_WIDTH)
                     
-                txt.setPos(x_pos + txt_offset, row * SCALE_VALUE)
+                txt.setPos((x_pos + txt_offset) / lod, 
+                           row * GUIConfig.FONT_HEIGHT / lod)
 
-            prev_col_x_pos = x_pos + (self.col_max_char[col] * CHAR_WIDTH)
+            prev_col_x_pos = x_pos + (self.col_max_char[col] * GUIConfig.CHAR_WIDTH) + GUIConfig.CHAR_WIDTH
 
-
-    def get_offset(self) -> QPointF:
-        offset: QLineF = self.approach_line.unitVector()
-        offset.setLength(50)
-        return offset.p2()
+        for turn_key, t in self.turns.items():
+            t['tm_arrow'].setPos(0, t['row'] * GUIConfig.FONT_HEIGHT / lod)
     
+    def update_self_pos(self):
+        self.offset.setLength(self.offset_length / self.lod)
+        self.setPos(self.offset.p2())
+    
+    def update_offset(self):
+        print(f"update_offset self.pos: {self.pos()}")
+        self.offset = QLineF(self.init_pt, self.pos())
+        self.offset_length = self.offset.length() * self.lod
+
+    def init_pos(self):
+        self.offset: QLineF = self.approach_line.unitVector()
+        self.offset.setLength(self.offset_length)
+        self.setPos(self.offset.p2())
+
     def boundingRect(self):
-        return QRectF(-10, -10, self.width, self.height + 20)
+        return QRectF(-10 / self.lod, 
+                      -10  / self.lod, 
+                      self.width / self.lod,
+                      (self.height + 20) / self.lod)
 
     def paint(self, painter, option, widget) -> None:
+        if not self.mouse_down:
+            self.update_self_pos()
+        
+        self.lod = option.levelOfDetailFromTransform(painter.worldTransform())
+        self._update_text_pos(self.lod)
+        #print(f"paint: {self.lod}")
         if self.flip:
             # # Draw Bounding Rect for debugging
             # brush = QBrush(QColor(240, 240, 240))
             # painter.setBrush(brush)
+            pen = QPen(QColor(255, 0, 0))
+            pen.setCosmetic(True)
+            painter.setPen(pen)
             painter.drawRect(self.boundingRect())
             # painter.drawEllipse(0,0,3,3)
+
+    def mousePressEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:
+        self.mouse_down = True
+        #print(f"Mouse Down self.pos: {self.pos()}")
+        return super().mousePressEvent(event)
+    
+    def mouseReleaseEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:
+        self.mouse_down = False
+        self.update_offset()
+
+        #print(f"Mouse Up self.pos: {self.pos()}")
+        return super().mouseReleaseEvent(event)
