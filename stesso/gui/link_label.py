@@ -24,6 +24,7 @@ class LinkItemData(Protocol):
 class LinkLabel(QGraphicsItem):
     def __init__(self, 
             self_link: LinkItemData,
+            is_visible: bool,
             label_props: list[list['LabelProps']],
             get_model_data_fn
         ) -> None:
@@ -36,6 +37,7 @@ class LinkLabel(QGraphicsItem):
         self.lod = 1
         self.mouse_down = False
         self.offset_length = 20
+        self.setVisible(is_visible)
 
         self.line = \
                QLineF(self.link.pts[0][0], self.link.pts[0][1],

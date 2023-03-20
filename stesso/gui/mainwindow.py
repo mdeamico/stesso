@@ -141,6 +141,7 @@ class MainWindow(QMainWindow):
 
         self.schematic_scene.init_labels(
             approaches_to_label=self.model.get_nodes_for_approach_labeling(),
+            link_label_visibility=self.model.get_link_label_visibility(),
             approach_label_props=self.node_label_props,
             get_node_text_fn=self.model.get_turn_data,
             link_label_props=self.link_label_props,

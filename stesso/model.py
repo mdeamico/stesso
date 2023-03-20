@@ -139,6 +139,14 @@ class Model():
         turn.assigned_volume = volume
         # TODO: what else needs to get updated? GEH?
 
+    def get_link_label_visibility(self) -> dict[tuple[int, int], bool]:
+        """Return list of link labels that should be visible in the schematic scene."""
+        link_label_visibility = {}
+        for link_key, link in self.net.links(True):
+            show_label = (link.target_volume != -1)
+            link_label_visibility[link_key] = show_label
+        return(link_label_visibility)
+
     def get_nodes_for_approach_labeling(self):
         """Return data needed to label nodes that have more than one upstream or 
         downstream neighbor.
@@ -168,8 +176,13 @@ class Model():
                     if i == k: continue
                     test_turn = self.net.turn(i, j, k)
                     if test_turn is None: continue
+                    if test_turn.target_volume == -1:
+                        continue
                     turns.append(TurnLabelData(key=test_turn.key))
 
+                if len(turns) == 0:
+                    continue
+                
                 approach_labels.append(
                     ApproachLabelData(
                         link_key=link_in.key,

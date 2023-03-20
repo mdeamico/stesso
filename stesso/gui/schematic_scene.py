@@ -100,6 +100,7 @@ class SchematicScene(QGraphicsScene):
             self.addItem(NodeItem(node.x, node.y, node.name))
         
     def init_labels(self, 
+                    link_label_visibility,
                     approaches_to_label: list[NodeApproachLabelData], 
                     approach_label_props: list[list['LabelProps']], 
                     get_node_text_fn,
@@ -111,12 +112,13 @@ class SchematicScene(QGraphicsScene):
         nodes_to_label : list[NodeApproachLabelData]
             List of data needed to make turning movement labels at each node.
         """
-        self._create_link_labels(link_label_props, get_link_text_fn)
+        self._create_link_labels(link_label_visibility, link_label_props, get_link_text_fn)
         self._create_approach_labels(approaches_to_label, approach_label_props, get_node_text_fn)
 
-    def _create_link_labels(self, label_props, get_data_fn) -> None:
-        for _, link in self.links.items():
-            new_link_label = LinkLabel(link, label_props, get_data_fn)
+    def _create_link_labels(self, label_visibility, label_props, get_data_fn) -> None:
+        for key, link in self.links.items():
+            is_visible = label_visibility[key]
+            new_link_label = LinkLabel(link, is_visible, label_props, get_data_fn)
             self.addItem(new_link_label)
             #new_link_label.setPos(new_link_label.get_offset())
             # new_link_label.init_pos()
