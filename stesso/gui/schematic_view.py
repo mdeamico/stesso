@@ -12,7 +12,24 @@ class SchematicView(QGraphicsView):
         super().__init__()
         self.setDragMode(QGraphicsView.ScrollHandDrag)
         self.setTransformationAnchor(QGraphicsView.AnchorUnderMouse)
+        self.prev_scale = self.transform().m11()
+        self.vis_threshold_for_approach_label = 8
     
+    def set_vis_threshold(self, value):
+        self.vis_threshold_for_approach_label = value
+        self.set_prev_scale()
+        print(f"set_vis... {self.vis_threshold_for_approach_label}")
+
+    def set_prev_scale(self):
+        self.prev_scale = self.transform().m11()
+        print(f"in set_prev_scale: {self.prev_scale}")
+        if self.prev_scale < self.vis_threshold_for_approach_label:
+            self.scene().hide_approach_labels()
+            print("change vis")
+        elif self.prev_scale >= self.vis_threshold_for_approach_label:
+            self.scene().show_approach_labels()
+            print("change vis")       
+
     def wheelEvent(self, event: 'PySide2.QtGui.QWheelEvent') -> None:
 
         # Zoom to point under mouse cursor.
@@ -24,13 +41,27 @@ class SchematicView(QGraphicsView):
         
         zoom_factor = 1.1
         if event.angleDelta().y() <= 0:
-            zoom_factor = 0.9
+            zoom_factor = 1 / zoom_factor
         
         self.scale(zoom_factor, zoom_factor)
         self.setTransformationAnchor(previous_anchor)
 
+        print(f"view transform m11: {self.transform().m11()} m22: {self.transform().m22()}")
+        new_scale = self.transform().m11()
+        # scale_delta = new_scale - self.vis_threshold_for_approach_label
+
+        if new_scale < self.vis_threshold_for_approach_label and \
+           self.prev_scale >= self.vis_threshold_for_approach_label:
+            self.scene().hide_approach_labels()
+            print("change vis")
+        elif new_scale >= self.vis_threshold_for_approach_label and \
+             self.prev_scale < self.vis_threshold_for_approach_label:
+            self.scene().show_approach_labels()
+            print("change vis")
+
+        self.prev_scale = new_scale
+
         # Do not call the super().wheelEvent(event) method in the return statement.
         # Doing so interferes with the zoom to cursor behavior logic implemented above.
-    
         return
 

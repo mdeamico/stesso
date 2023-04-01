@@ -16,6 +16,9 @@ class TMHint(QGraphicsItem):
         self.polygon = QPolygonF([line_in.p2(), line_in.p1(), line_out.p2()])
 
         self.selected = False
+
+        self.pen = QPen(Qt.blue, 6)
+        self.pen.setCosmetic(True)
         
     
     def boundingRect(self):
@@ -23,5 +26,5 @@ class TMHint(QGraphicsItem):
     
     def paint(self, painter, option, widget) -> None:
         if self.selected:
-            painter.setPen(QPen(Qt.blue, 6))
+            painter.setPen(self.pen)
             painter.drawPolyline(self.polygon)

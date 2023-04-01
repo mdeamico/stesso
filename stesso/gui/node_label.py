@@ -1,8 +1,9 @@
 from PySide2.QtWidgets import QGraphicsItem
-from PySide2.QtGui import QFont, QPainter, QPixmap, QBrush
-from PySide2.QtCore import Qt, QRectF, QPoint
+from PySide2.QtGui import QFont, QPainter, QPixmap
+from PySide2.QtCore import Qt, QRectF, QPointF
 
 
+# TODO: convert these constants to be dependent on actual font size used.
 SCALE_VALUE = 22
 AVG_CHAR_WIDTH = 10
 CHAR_CAP_HEIGHT = 12
@@ -11,10 +12,11 @@ CHAR_CAP_HEIGHT = 12
 class NodeLabel(QGraphicsItem):
     def __init__(self, parent, text: str) -> None:
         super().__init__(parent)
+        self.x_offset = 5
+        self.y_offset = 5
 
         self.text = text
-        self.font = QFont("consolas", 14)
-
+        self.lod = 1
         self.antialias_scale = 2
         self.text_pixmap = self._setup_text_pixmap()
 
@@ -37,12 +39,19 @@ class NodeLabel(QGraphicsItem):
         return canvas
 
     def boundingRect(self):
-        return QRectF(0, 0, len(self.text) * AVG_CHAR_WIDTH, CHAR_CAP_HEIGHT)
+        return QRectF(self.x_offset / self.lod, 
+                      (self.y_offset) / self.lod, 
+                      len(self.text) * AVG_CHAR_WIDTH / self.lod, 
+                      CHAR_CAP_HEIGHT / self.lod)
 
     def paint(self, painter, option, widget) -> None:
-        lod = option.levelOfDetailFromTransform(painter.worldTransform())
-        scale_mult = (1 / self.antialias_scale) / lod
+        self.lod = option.levelOfDetailFromTransform(painter.worldTransform())
+                
+        scale_mult = (1 / self.antialias_scale) / self.lod
         painter.scale(scale_mult, scale_mult)
         
-        painter.drawPixmap(QPoint(0, 0), self.text_pixmap)
+        painter.drawPixmap(QPointF(self.x_offset * self.antialias_scale,
+                                   self.y_offset * self.antialias_scale), 
+                                   self.text_pixmap)
+        
         

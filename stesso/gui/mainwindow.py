@@ -11,6 +11,7 @@ from gui import schematic_scene
 from gui.dialog_open import DialogOpen
 from gui.dialog_export import DialogExport
 from gui.dialog_vol_input import DialogVolInput
+from gui.dialog_settings import DialogSettings
 from gui import label_props
 
 from gui import settings
@@ -48,10 +49,15 @@ class MainWindow(QMainWindow):
         # Dialog Export
         self.dialog_export = DialogExport(cb_export=self.export)
 
-        # Connect push buttons to slot functions
-        self.ui.pbShowDialogOpen.clicked.connect(self.show_dialog_open)
-        self.ui.pbShowExportDialog.clicked.connect(self.show_dialog_export)
-        self.ui.pbBalance.clicked.connect(self.balance_volumes)
+        # Dialog Settings
+        self.dialog_settings = DialogSettings()
+        self.dialog_settings.ui.sldTMViz.valueChanged.connect(self.ui.gvSchematic.set_vis_threshold)
+        
+        # Connect QActions
+        self.ui.actionOpen.triggered.connect(self.show_dialog_open)
+        self.ui.actionExport.triggered.connect(self.show_dialog_export)
+        self.ui.actionSettings.triggered.connect(lambda: self.dialog_settings.show())
+        self.ui.actionBalance_Volumes.triggered.connect(self.balance_volumes)
 
     #     # Disable buttons that should only be used after loading a network
     #     self.ui.pbShowExportDialog.setEnabled(False)
@@ -162,6 +168,7 @@ class MainWindow(QMainWindow):
 
         # Flip y coordinates to make y coordinates increasing from bottom to top.
         self.ui.gvSchematic.scale(1, -1)
+        self.ui.gvSchematic.set_prev_scale()
 
         # Enable buttons that can be used after the network is loaded
         # self.ui.pbShowExportDialog.setEnabled(True)
