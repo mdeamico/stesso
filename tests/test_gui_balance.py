@@ -32,12 +32,15 @@ class MainTest(unittest.TestCase):
     def test_draw(self):
         net_folder = os.path.join(os.getcwd(), "tests", "networks", "net01")
         self.window.show()
-        QTest.mouseClick(self.window.ui.pbShowDialogOpen, Qt.LeftButton)
+        
+        self.window.ui.actionOpen.trigger()
         self.window.dialog_open.ui.leLinks.setText(os.path.join(net_folder, "links.shp"))
         self.window.dialog_open.ui.leNodes.setText(os.path.join(net_folder, "points.shp"))
         self.window.dialog_open.ui.leTurns.setText(os.path.join(net_folder, "turn targets.csv"))
         QTest.mouseClick(self.window.dialog_open.ui.buttonBox.button(QDialogButtonBox.Ok), Qt.LeftButton)
-        QTest.mouseClick(self.window.ui.pbBalance, Qt.LeftButton)
+        
+        self.window.ui.actionBalance_Volumes.trigger()
+        
         event_loop(15000)
         self.assertEqual(1, 1)
 

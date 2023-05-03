@@ -13,15 +13,16 @@ class TMArrow(QGraphicsItem):
         self.angle_in = angle_in
         self.angle_out = angle_out + angle_in
         self.angle_rel = angle_rel
+        self.lod = 1
     
     def boundingRect(self):
-        return QRectF(0, 0, GUIConfig.FONT_HEIGHT, GUIConfig.FONT_HEIGHT)
+        return QRectF(0, 0, GUIConfig.FONT_HEIGHT / self.lod, GUIConfig.FONT_HEIGHT / self.lod)
     
     def paint(self, painter, option, widget) -> None:
-        lod = option.levelOfDetailFromTransform(painter.worldTransform())
-        painter.scale(1 / lod, 1 / lod)
+        self.lod = option.levelOfDetailFromTransform(painter.worldTransform())
+        painter.scale(1 / self.lod, 1 / self.lod)
 
-        painter.drawRect(self.boundingRect())
+        # painter.drawRect(self.boundingRect())
         
         line_in = QLineF(0, 0, GUIConfig.FONT_HEIGHT * 0.4, 0)
         # Line_in always has zero angle because it is parallel to the approach,

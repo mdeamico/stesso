@@ -36,7 +36,7 @@ class LinkLabel(QGraphicsItem):
         self.get_model_data = get_model_data_fn
         self.lod = 1
         self.mouse_down = False
-        self.offset_length = 20
+        self.offset_length = 8
         self.setVisible(is_visible)
 
         self.line = \
@@ -186,17 +186,17 @@ class LinkLabel(QGraphicsItem):
         # # Draw Bounding Rect for debugging
         # brush = QBrush(QColor(240, 240, 0))
         # painter.setBrush(brush)
-        if self.flip:
-            pen = QPen(QColor(255, 0, 0))
-        else:
-            pen = QPen(QColor(0, 255, 0))
+        # if self.flip:
+        #     pen = QPen(QColor(255, 0, 0))
+        # else:
+        #     pen = QPen(QColor(0, 255, 0))
         
         self._update_text_pos(self.lod)
         
-        pen.setCosmetic(True)
-        painter.setPen(pen)
+        # pen.setCosmetic(True)
+        # painter.setPen(pen)
         
-        painter.drawRect(self.boundingRect())
+        # painter.drawRect(self.boundingRect())
         # painter.drawEllipse(0,0,3,3)
 
     def mousePressEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:

@@ -34,15 +34,15 @@ class MainTest(unittest.TestCase):
         net_folder = os.path.join(os.getcwd(), "tests", "networks", "net01")
         export_folder = os.path.join(os.getcwd(), "tests", "exports")
         self.window.show()
-        QTest.mouseClick(self.window.ui.pbShowDialogOpen, Qt.LeftButton)
+        self.window.ui.actionOpen.trigger()
         self.window.dialog_open.ui.leLinks.setText(os.path.join(net_folder, "links.shp"))
         self.window.dialog_open.ui.leNodes.setText(os.path.join(net_folder, "points.shp"))
         self.window.dialog_open.ui.leTurns.setText(os.path.join(net_folder, "turn targets.csv"))
         QTest.mouseClick(self.window.dialog_open.ui.buttonBox.button(QDialogButtonBox.Ok), Qt.LeftButton)
         
-        QTest.mouseClick(self.window.ui.pbBalance, Qt.LeftButton)
+        self.window.ui.actionBalance_Volumes.trigger()
         
-        QTest.mouseClick(self.window.ui.pbShowExportDialog, Qt.LeftButton)
+        self.window.ui.actionExport.trigger()
         self.window.dialog_export.ui.leExportFolder.setText(export_folder)
         QTest.mouseClick(self.window.dialog_export.ui.pbExport, Qt.LeftButton)
 

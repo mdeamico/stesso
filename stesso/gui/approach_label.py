@@ -41,7 +41,7 @@ class ApproachLabel(QGraphicsItem):
         self.mouse_down = False
         self.init_pt = QPointF(self.link.pts[1][0], 
                                 self.link.pts[1][1])
-        self.offset_length = 10
+        self.offset_length = 20
 
         self.text_grid: list[list[LabelText]] = []
 
@@ -193,6 +193,19 @@ class ApproachLabel(QGraphicsItem):
     def init_pos(self):
         self.offset: QLineF = self.approach_line.unitVector()
         self.offset.setLength(self.offset_length)
+        
+        self.offset.translate(
+            QPointF(self.offset.p2().x() - self.offset.p1().x(),
+                    self.offset.p2().y() - self.offset.p1().y()))
+
+        self.offset = self.offset.normalVector()
+        self.offset.setAngle(self.offset.angle() + 180)
+        self.offset.setP1(self.approach_line.p1())
+        self.offset_length = self.offset.length()
+
+        # self.offset.setLength(25)
+        # self.offset_length = 25
+
         self.setPos(self.offset.p2())
 
     def boundingRect(self):
@@ -207,16 +220,17 @@ class ApproachLabel(QGraphicsItem):
         
         self.lod = option.levelOfDetailFromTransform(painter.worldTransform())
         self._update_text_pos(self.lod)
+
         #print(f"paint: {self.lod}")
-        if self.flip:
-            # # Draw Bounding Rect for debugging
-            # brush = QBrush(QColor(240, 240, 240))
-            # painter.setBrush(brush)
-            pen = QPen(QColor(255, 0, 0))
-            pen.setCosmetic(True)
-            painter.setPen(pen)
-            painter.drawRect(self.boundingRect())
-            # painter.drawEllipse(0,0,3,3)
+        # if self.flip:
+        #     # # Draw Bounding Rect for debugging
+        #     # brush = QBrush(QColor(240, 240, 240))
+        #     # painter.setBrush(brush)
+        #     pen = QPen(QColor(255, 0, 0))
+        #     pen.setCosmetic(True)
+        #     painter.setPen(pen)
+        #     painter.drawRect(self.boundingRect())
+        #     # painter.drawEllipse(0,0,3,3)
 
     def mousePressEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:
         self.mouse_down = True

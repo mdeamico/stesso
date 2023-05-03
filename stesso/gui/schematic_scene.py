@@ -166,6 +166,14 @@ class SchematicScene(QGraphicsScene):
         ap_label.setFlag(QGraphicsItem.ItemIsMovable)
         return ap_label
     
+    def hide_approach_labels(self) -> None:
+        for lbl in self.approach_labels:
+            lbl.setVisible(False)
+
+    def show_approach_labels(self) -> None:
+        for lbl in self.approach_labels:
+            lbl.setVisible(True)
+
     def update_approach_labels(self) -> None:
         for lbl in self.approach_labels:
             lbl.update_text()

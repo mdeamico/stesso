@@ -23,6 +23,7 @@ def event_loop(msec):
     timer.start(msec)
     loop.exec_()
 
+
 class MainTest(unittest.TestCase):
     def setUp(self) -> None:
         app = QApplication(sys.argv)
@@ -31,14 +32,16 @@ class MainTest(unittest.TestCase):
         return super().setUp()
 
     def test_draw(self):
-        net_folder = os.path.join(os.getcwd(), "tests", "networks", "net01")
+        net_folder = os.path.join(os.getcwd(), "tests", "networks", "net02")
         self.window.show()
-        QTest.mouseClick(self.window.ui.pbShowDialogOpen, Qt.LeftButton)
+
+        self.window.ui.actionOpen.trigger()
         self.window.dialog_open.ui.leLinks.setText(os.path.join(net_folder, "links.shp"))
         self.window.dialog_open.ui.leNodes.setText(os.path.join(net_folder, "points.shp"))
         self.window.dialog_open.ui.leTurns.setText(os.path.join(net_folder, "turn targets.csv"))
         QTest.mouseClick(self.window.dialog_open.ui.buttonBox.button(QDialogButtonBox.Ok), Qt.LeftButton)
-        event_loop(20000)
+        
+        event_loop(200000)
         self.assertEqual(1, 1)
 
 
