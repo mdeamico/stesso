@@ -45,6 +45,7 @@ class NodeLabel(QGraphicsItem):
                       CHAR_CAP_HEIGHT / self.lod)
 
     def paint(self, painter, option, widget) -> None:
+        self.prepareGeometryChange()
         self.lod = option.levelOfDetailFromTransform(painter.worldTransform())
                 
         scale_mult = (1 / self.antialias_scale) / self.lod

@@ -146,7 +146,7 @@ class ApproachLabel(QGraphicsItem):
                 new_text = txt.update_text(data)
                 self.col_max_char[col] = max(len(new_text), self.col_max_char[col])
 
-        self._update_text_pos()
+        self._update_text_pos(self.lod)
 
         self.width = 0
         for col in range(self.n_cols):
@@ -184,6 +184,7 @@ class ApproachLabel(QGraphicsItem):
     def update_self_pos(self):
         self.offset.setLength(self.offset_length / self.lod)
         self.setPos(self.offset.p2())
+        self._update_text_pos(self.lod)
     
     def update_offset(self):
         print(f"update_offset self.pos: {self.pos()}")
@@ -214,13 +215,20 @@ class ApproachLabel(QGraphicsItem):
                       self.width / self.lod,
                       (self.height + 20) / self.lod)
 
+
+    def set_lod(self, lod):
+        self.prepareGeometryChange()
+        self.lod = lod
+
     def paint(self, painter, option, widget) -> None:
-        if not self.mouse_down:
+        self.prepareGeometryChange()
+        self.lod = option.levelOfDetailFromTransform(painter.worldTransform())
+
+        if self.mouse_down:
+            self._update_text_pos(self.lod)
+        else:
             self.update_self_pos()
         
-        self.lod = option.levelOfDetailFromTransform(painter.worldTransform())
-        self._update_text_pos(self.lod)
-
         #print(f"paint: {self.lod}")
         # if self.flip:
         #     # # Draw Bounding Rect for debugging
