@@ -1,5 +1,5 @@
 from PySide2.QtWidgets import QGraphicsItem
-from PySide2.QtGui import QFont, QFontMetrics, QPainter, QPixmap
+from PySide2.QtGui import QFont, QFontMetrics, QPainter, QPixmap, QPen, QColor
 from PySide2.QtCore import Qt, QRectF, QObject, Signal, QPoint
 
 from .label_props import LabelProps
@@ -27,19 +27,17 @@ class LabelText(QGraphicsItem):
         self.selected = False
         self.signals = Communicate()
 
-        self.font = QFont(GUIConfig.FONT_NAME, GUIConfig.FONT_SIZE)
-        self._fm = QFontMetrics(self.font)
-        self._fm_rect_top = self._fm.boundingRect("X").top()
+        self._fm_rect_top = GUIConfig.QFONTMETRICS.boundingRect("X").top()
         
         self.setToolTip(f"{self.props.data_name}: {self.text}")
 
-        self.antialias_scale = 2
+        self.antialias_scale = GUIConfig.FONT_ANTIALIAS
         self.text_pixmap = self._update_text_pixmap()
         self.lod = 1
 
 
     def _update_text_pixmap(self):
-        
+
         width_px = (len(self.text) * GUIConfig.CHAR_WIDTH) * self.antialias_scale
         height_px = GUIConfig.FONT_HEIGHT * self.antialias_scale
 
@@ -50,7 +48,9 @@ class LabelText(QGraphicsItem):
         font = QFont(GUIConfig.FONT_NAME, GUIConfig.FONT_SIZE * self.antialias_scale)
         painter.setFont(font)
         painter.setPen(Qt.black)
-        painter.translate(0, -self._fm_rect_top * self.antialias_scale)
+        
+        x_pos_aa_offset = width_px - (len(self.text) * GUIConfig.AA_CHAR_WIDTH)
+        painter.translate(x_pos_aa_offset, -self._fm_rect_top * self.antialias_scale)
         # painter.scale(1.0, -1.0)
         
         painter.drawText(0, 0, self.text)
@@ -66,6 +66,7 @@ class LabelText(QGraphicsItem):
                       GUIConfig.FONT_HEIGHT / self.lod)
 
     def paint(self, painter, option, widget) -> None:
+        self.prepareGeometryChange()
         self.lod = option.levelOfDetailFromTransform(painter.worldTransform())
 
         text_width = len(self.text) * GUIConfig.CHAR_WIDTH / self.lod
@@ -78,8 +79,10 @@ class LabelText(QGraphicsItem):
             painter.scale(1, -1)
         
         if self.selected:
+            pen = QPen(QColor(0, 0, 255))
+            pen.setCosmetic(True)
+            painter.setPen(pen)
             painter.drawRect(self.boundingRect())
-            painter.drawEllipse(0, 0, 3, 3)
         
         scale_mult = (1 / self.antialias_scale) / self.lod
         painter.scale(scale_mult, scale_mult)

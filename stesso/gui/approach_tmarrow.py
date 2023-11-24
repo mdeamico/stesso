@@ -19,6 +19,7 @@ class TMArrow(QGraphicsItem):
         return QRectF(0, 0, GUIConfig.FONT_HEIGHT / self.lod, GUIConfig.FONT_HEIGHT / self.lod)
     
     def paint(self, painter, option, widget) -> None:
+        self.prepareGeometryChange()
         self.lod = option.levelOfDetailFromTransform(painter.worldTransform())
         painter.scale(1 / self.lod, 1 / self.lod)
 
